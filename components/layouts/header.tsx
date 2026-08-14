@@ -1,10 +1,16 @@
 "use client";
 
+import { Menu } from "lucide-react";
 import { usePathname } from "next/navigation";
+import { Button } from "@/components/ui/button";
 import { navigationItems } from "./navigation";
 import { ThemeToggle } from "./theme-toggle";
 
-export function Header() {
+interface HeaderProps {
+  onMenuClick: () => void;
+}
+
+export function Header({ onMenuClick }: HeaderProps) {
   const pathname = usePathname();
 
   const currentPage =
@@ -12,16 +18,28 @@ export function Header() {
     "Dashboard";
 
   return (
-    <header className="flex h-16 items-center border-b px-6">
+    <header className="flex h-16 items-center border-b px-4 md:px-6">
       <div className="flex w-full items-center justify-between">
-        {/* left side */}
-        <div>
+        {/* Left side */}
+        <div className="flex items-center gap-3">
+          <Button
+            variant="ghost"
+            size="icon"
+            onClick={onMenuClick}
+            className="md:hidden"
+            aria-label="Open navigation"
+          >
+            <Menu className="size-5" />
+          </Button>
+
           <span className="font-semibold">My Lamando</span>
         </div>
 
-        {/* right side */}
+        {/* Right side */}
         <div className="flex items-center gap-4">
-          <span className="text-sm text-muted-foreground">{currentPage}</span>
+          <span className="hidden text-sm text-muted-foreground sm:block">
+            {currentPage}
+          </span>
 
           <ThemeToggle />
         </div>
