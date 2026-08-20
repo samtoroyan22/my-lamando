@@ -4,6 +4,11 @@ import "./globals.css";
 import { AppShell } from "@/components/layouts/app-shell";
 import { ThemeProvider } from "@/providers/theme-provider";
 import { cn } from "@/lib/utils";
+import { CarProvider } from "@/contexts/car-context";
+import { FuelProvider } from "@/contexts/fuel-context";
+import { ExpenseProvider } from "@/contexts/expense-context";
+import { ServiceProvider } from "@/contexts/service-context";
+import { GalleryProvider } from "@/contexts/gallery-context";
 
 const inter = Inter({ subsets: ["latin"], variable: "--font-sans" });
 
@@ -38,7 +43,17 @@ export default function RootLayout({ children }: LayoutProps<"/">) {
     >
       <body className="min-h-full flex flex-col">
         <ThemeProvider>
-          <AppShell>{children}</AppShell>
+          <CarProvider>
+            <GalleryProvider>
+              <ServiceProvider>
+                <ExpenseProvider>
+                  <FuelProvider>
+                    <AppShell>{children}</AppShell>
+                  </FuelProvider>
+                </ExpenseProvider>
+              </ServiceProvider>
+            </GalleryProvider>
+          </CarProvider>
         </ThemeProvider>
       </body>
     </html>
