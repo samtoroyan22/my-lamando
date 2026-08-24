@@ -14,6 +14,7 @@ import { useCar } from "@/contexts/car-context";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 
 import { Badge } from "@/components/ui/badge";
+import InfoItem from "./car-info-item";
 
 const CarInfo = () => {
   const { car } = useCar();
@@ -66,24 +67,24 @@ const CarInfo = () => {
                 </div>
               </div>
 
-              <div className="grid gap-3 sm:grid-cols-3">
-                <div className="rounded-xl border bg-background/60 p-4">
-                  <p className="text-sm text-muted-foreground">Engine</p>
+              <div className="grid gap-4 sm:grid-cols-3">
+                <InfoItem
+                  icon={<CarFront className="size-4" />}
+                  label="Engine"
+                  value={car.engine.type}
+                />
 
-                  <p className="mt-1 font-medium">{car.engine.type}</p>
-                </div>
+                <InfoItem
+                  icon={<Zap className="size-4" />}
+                  label="Power"
+                  value={`${car.engine.power} HP`}
+                />
 
-                <div className="rounded-xl border bg-background/60 p-4">
-                  <p className="text-sm text-muted-foreground">Power</p>
-
-                  <p className="mt-1 font-medium">{car.engine.power} HP</p>
-                </div>
-
-                <div className="rounded-xl border bg-background/60 p-4">
-                  <p className="text-sm text-muted-foreground">Transmission</p>
-
-                  <p className="mt-1 font-medium">{car.transmission}</p>
-                </div>
+                <InfoItem
+                  icon={<Settings2 className="size-4" />}
+                  label="Transmission"
+                  value={car.transmission}
+                />
               </div>
             </div>
           </div>
@@ -181,28 +182,5 @@ const CarInfo = () => {
     </div>
   );
 };
-
-interface InfoItemProps {
-  icon: React.ReactNode;
-  label: string;
-  value: string;
-  mono?: boolean;
-}
-
-function InfoItem({ icon, label, value, mono = false }: InfoItemProps) {
-  return (
-    <div className="rounded-xl border bg-muted/30 p-4 transition-colors hover:bg-muted/50">
-      <div className="flex items-center gap-2 text-muted-foreground">
-        {icon}
-
-        <span className="text-sm">{label}</span>
-      </div>
-
-      <p className={`mt-2 font-medium ${mono ? "font-mono text-sm" : ""}`}>
-        {value}
-      </p>
-    </div>
-  );
-}
 
 export default CarInfo;

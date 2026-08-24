@@ -7,7 +7,7 @@ import { zodResolver } from "@hookform/resolvers/zod";
 
 import { useCar } from "@/contexts/car-context";
 
-import { carSchema, type CarFormValues } from "@/lib/validations/car-schema";
+import { carSchema, type CarFormValues } from "@/schemas/car-schema";
 
 import {
   Dialog,
