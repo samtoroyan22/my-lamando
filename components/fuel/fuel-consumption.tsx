@@ -81,10 +81,6 @@ const FuelConsumption = () => {
     );
   }
 
-  const averageConsumption =
-    consumptionValues.reduce((sum, value) => sum + value, 0) /
-    consumptionValues.length;
-
   const totalDistance = distances.reduce((sum, distance) => sum + distance, 0);
 
   const totalFuel = sortedEntries
@@ -160,13 +156,6 @@ const FuelConsumption = () => {
             Consumption is estimated from the distance between consecutive fuel
             entries. The result is most accurate when entries represent
             full-tank refuels.
-          </p>
-        </div>
-        {/* add averageConsumption */}
-        <div className="mt-4 rounded-lg bg-muted/40 px-4 py-3">
-          <p className="text-xs text-muted-foreground">
-            Average consumption (simple average):{" "}
-            {averageConsumption.toFixed(2)} L/100 km
           </p>
         </div>
       </CardContent>
