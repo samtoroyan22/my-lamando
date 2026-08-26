@@ -1,3 +1,5 @@
+"use client";
+
 import { useExpense } from "@/contexts/expense-context";
 
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
