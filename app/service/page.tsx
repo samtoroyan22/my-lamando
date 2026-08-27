@@ -1,15 +1,17 @@
+"use client";
+
+import ServiceOverview from "@/components/service/service-overview";
+import MaintenanceSchedule from "@/components/service/maintenance-schedule";
+import ServiceHistory from "@/components/service/service-history";
 import ServicePageHeader from "@/components/service/service-page-header";
-import ServiceStats from "@/components/service/service-stats";
-import ServiceTable from "@/components/service/service-table";
 
 const Service = () => {
   return (
     <main className="space-y-8">
       <ServicePageHeader />
-
-      <ServiceTable />
-
-      <ServiceStats />
+      <ServiceOverview />
+      <MaintenanceSchedule />
+      <ServiceHistory />
     </main>
   );
 };

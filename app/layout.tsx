@@ -9,6 +9,7 @@ import { FuelProvider } from "@/contexts/fuel-context";
 import { ExpenseProvider } from "@/contexts/expense-context";
 import { ServiceProvider } from "@/contexts/service-context";
 import { GalleryProvider } from "@/contexts/gallery-context";
+import { MaintenanceProvider } from "@/contexts/maintenance-context";
 
 const inter = Inter({ subsets: ["latin"], variable: "--font-sans" });
 
@@ -44,15 +45,17 @@ export default function RootLayout({ children }: LayoutProps<"/">) {
       <body className="min-h-full flex flex-col">
         <ThemeProvider>
           <CarProvider>
-            <GalleryProvider>
+            <MaintenanceProvider>
               <ServiceProvider>
                 <ExpenseProvider>
                   <FuelProvider>
-                    <AppShell>{children}</AppShell>
+                    <GalleryProvider>
+                      <AppShell>{children}</AppShell>
+                    </GalleryProvider>
                   </FuelProvider>
                 </ExpenseProvider>
               </ServiceProvider>
-            </GalleryProvider>
+            </MaintenanceProvider>
           </CarProvider>
         </ThemeProvider>
       </body>
