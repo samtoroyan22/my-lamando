@@ -16,7 +16,7 @@ import {
   deleteGalleryPhoto as removeGalleryPhoto,
 } from "@/lib/storage/gallery-storage";
 
-import { GalleryPhoto } from "@/types/gallery";
+import type { GalleryPhoto } from "@/types/gallery";
 
 interface GalleryContextValue {
   galleryEntries: GalleryPhoto[];

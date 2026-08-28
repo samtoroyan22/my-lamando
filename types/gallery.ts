@@ -1,7 +1,19 @@
+export type PhotoCategory =
+  | "Exterior"
+  | "Interior"
+  | "Engine"
+  | "Wheels"
+  | "Documents"
+  | "Service"
+  | "Before / After"
+  | "Other";
+
 export interface GalleryPhoto {
   id: string;
-  url: string;
+  src: string;
+  title?: string;
+  category: PhotoCategory;
   date: string;
-  category: string;
-  description?: string;
+  mileage?: number;
+  comment?: string;
 }

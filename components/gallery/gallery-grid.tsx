@@ -1,0 +1,165 @@
+"use client";
+
+import { useMemo, useState } from "react";
+
+import Image from "next/image";
+
+import { Trash2 } from "lucide-react";
+
+import { format } from "date-fns";
+
+import { useGallery } from "@/contexts/gallery-context";
+
+import type { GalleryPhoto, PhotoCategory } from "@/types/gallery";
+
+import { Button } from "@/components/ui/button";
+
+import GalleryDialog from "@/components/gallery/gallery-dialog";
+import GalleryLightbox from "@/components/gallery/gallery-lightbox";
+
+interface GalleryGridProps {
+  category: PhotoCategory | "All";
+}
+
+const GalleryGrid = ({ category }: GalleryGridProps) => {
+  const { galleryEntries, deleteGalleryEntry } = useGallery();
+
+  const [lightboxIndex, setLightboxIndex] = useState<number | null>(null);
+
+  const photos = useMemo(() => {
+    if (category === "All") {
+      return galleryEntries;
+    }
+
+    return galleryEntries.filter((photo) => photo.category === category);
+  }, [galleryEntries, category]);
+
+  const openLightbox = (photo: GalleryPhoto) => {
+    const index = photos.findIndex((item) => item.id === photo.id);
+
+    setLightboxIndex(index);
+  };
+
+  const handlePrevious = () => {
+    setLightboxIndex((current) => {
+      if (current === null || photos.length === 0) {
+        return current;
+      }
+
+      return current === 0 ? photos.length - 1 : current - 1;
+    });
+  };
+
+  const handleNext = () => {
+    setLightboxIndex((current) => {
+      if (current === null || photos.length === 0) {
+        return current;
+      }
+
+      return current === photos.length - 1 ? 0 : current + 1;
+    });
+  };
+
+  if (photos.length === 0) {
+    return (
+      <div className="rounded-xl border border-dashed p-12 text-center">
+        <p className="text-sm text-muted-foreground">
+          No photos in this category yet.
+        </p>
+      </div>
+    );
+  }
+
+  return (
+    <>
+      <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3">
+        {photos.map((photo) => (
+          <div
+            key={photo.id}
+            className="overflow-hidden rounded-xl border bg-card"
+          >
+            {/* Картинка — отдельная кликабельная зона */}
+            <button
+              type="button"
+              onClick={() => openLightbox(photo)}
+              className="block w-full cursor-pointer text-left"
+            >
+              <div className="relative aspect-4/3 overflow-hidden">
+                <Image
+                  src={photo.src}
+                  alt={photo.title ?? `${photo.category} photo`}
+                  fill
+                  unoptimized
+                  sizes="(max-width: 640px) 100vw, (max-width: 1024px) 50vw, 33vw"
+                  className="object-cover transition-transform duration-300 hover:scale-105"
+                />
+              </div>
+            </button>
+
+            {/* Информация + кнопки */}
+            <div className="relative px-4 py-3.5">
+              {/* Кнопки */}
+              <div className="absolute right-3 top-3 flex items-center gap-1">
+                <GalleryDialog entry={photo} />
+
+                <Button
+                  type="button"
+                  variant="ghost"
+                  size="icon"
+                  aria-label="Delete photo"
+                  onClick={() => deleteGalleryEntry(photo.id)}
+                  className="size-8 hover:text-destructive"
+                >
+                  <Trash2 className="size-4" />
+                </Button>
+              </div>
+
+              {/* Контент */}
+              <div className="min-w-0 pr-20">
+                {/* Название + категория */}
+                <div className="flex min-w-0 items-center gap-2">
+                  <p className="min-w-0 truncate text-sm font-medium">
+                    {photo.title ?? "Untitled photo"}
+                  </p>
+
+                  <span className="shrink-0 rounded-md bg-muted px-2 py-0.5 text-[11px] font-medium text-muted-foreground">
+                    {photo.category}
+                  </span>
+                </div>
+
+                {/* Дата + пробег */}
+                <div className="mt-1.5 flex items-center gap-1.5 text-xs text-muted-foreground">
+                  <span>{format(new Date(photo.date), "dd.MM.yyyy")}</span>
+
+                  {photo.mileage !== undefined && (
+                    <>
+                      <span className="text-muted-foreground/50">•</span>
+                      <span>{photo.mileage.toLocaleString("ru-RU")} km</span>
+                    </>
+                  )}
+                </div>
+
+                {/* Комментарий */}
+                {photo.comment && (
+                  <p className="mt-2 line-clamp-2 text-xs leading-relaxed text-muted-foreground/80">
+                    {photo.comment}
+                  </p>
+                )}
+              </div>
+            </div>
+          </div>
+        ))}
+      </div>
+
+      <GalleryLightbox
+        photos={photos}
+        index={lightboxIndex}
+        onClose={() => setLightboxIndex(null)}
+        onPrevious={handlePrevious}
+        onNext={handleNext}
+      />
+    </>
+  );
+};
+
+export default GalleryGrid;
