@@ -6,10 +6,8 @@ const Expenses = () => {
   return (
     <main className="space-y-8">
       <ExpensesPageHeader />
-
-      <ExpenseTable />
-
       <ExpenseStats />
+      <ExpenseTable />
     </main>
   );
 };
