@@ -15,6 +15,11 @@ export const navigationItems = [
     icon: Gauge,
   },
   {
+    title: "Car",
+    href: "/car",
+    icon: Car,
+  },
+  {
     title: "Fuel",
     href: "/fuel",
     icon: Fuel,
@@ -33,11 +38,6 @@ export const navigationItems = [
     title: "Gallery",
     href: "/gallery",
     icon: Images,
-  },
-  {
-    title: "Car",
-    href: "/car",
-    icon: Car,
   },
   {
     title: "Settings",

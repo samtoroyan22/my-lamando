@@ -3,7 +3,7 @@ import { Geist, Geist_Mono, Inter } from "next/font/google";
 import "./globals.css";
 import { AppShell } from "@/components/layouts/app-shell";
 import { ThemeProvider } from "@/providers/theme-provider";
-import { cn } from "@/lib/utils";
+import { cn } from "@/lib/utils/utils";
 import { CarProvider } from "@/contexts/car-context";
 import { FuelProvider } from "@/contexts/fuel-context";
 import { ExpenseProvider } from "@/contexts/expense-context";
