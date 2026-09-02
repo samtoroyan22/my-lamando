@@ -10,6 +10,7 @@ import { ExpenseProvider } from "@/contexts/expense-context";
 import { ServiceProvider } from "@/contexts/service-context";
 import { GalleryProvider } from "@/contexts/gallery-context";
 import { MaintenanceProvider } from "@/contexts/maintenance-context";
+import { Toaster } from "sonner";
 
 const inter = Inter({ subsets: ["latin"], variable: "--font-sans" });
 
@@ -44,6 +45,8 @@ export default function RootLayout({ children }: LayoutProps<"/">) {
     >
       <body className="min-h-full flex flex-col">
         <ThemeProvider>
+          <Toaster />
+
           <CarProvider>
             <MaintenanceProvider>
               <ServiceProvider>

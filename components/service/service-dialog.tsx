@@ -30,6 +30,7 @@ import { Input } from "@/components/ui/input";
 
 import MultiSelect from "@/components/ui/multi-select";
 import { useCar } from "@/contexts/car-context";
+import { toast } from "sonner";
 
 interface ServiceDialogProps {
   entry?: ServiceRecord;
@@ -82,33 +83,26 @@ const ServiceDialog = ({ entry }: ServiceDialogProps) => {
   }, [open, entry, form, car?.mileage]);
 
   const onSubmit = (values: ServiceFormValues) => {
+    const serviceEntry: ServiceRecord = {
+      id: entry?.id ?? crypto.randomUUID(),
+      date: new Date(values.date).toISOString(),
+      mileage: values.mileage,
+      title: values.title,
+      works: values.works,
+      cost: values.cost,
+      serviceName: values.serviceName || undefined,
+      comment: values.comment || undefined,
+    };
+
     if (entry) {
-      const updatedEntry: ServiceRecord = {
-        ...entry,
-        date: new Date(values.date).toISOString(),
-        mileage: values.mileage,
-        title: values.title,
-        works: values.works,
-        cost: values.cost,
-        serviceName: values.serviceName || undefined,
-        comment: values.comment || undefined,
-      };
-
-      updateServiceEntry(updatedEntry);
+      updateServiceEntry(serviceEntry);
     } else {
-      const newEntry: ServiceRecord = {
-        id: crypto.randomUUID(),
-        date: new Date(values.date).toISOString(),
-        mileage: values.mileage,
-        title: values.title,
-        works: values.works,
-        cost: values.cost,
-        serviceName: values.serviceName || undefined,
-        comment: values.comment || undefined,
-      };
-
-      addServiceEntry(newEntry);
+      addServiceEntry(serviceEntry);
     }
+
+    toast.success(`Service entry ${entry ? "updated" : "added"}`, {
+      description: `${serviceEntry.title} · ${serviceEntry.cost.toFixed(2)} ₽`,
+    });
 
     setOpen(false);
     form.reset();

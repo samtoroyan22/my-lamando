@@ -1,11 +1,7 @@
 "use client";
 
 import { format } from "date-fns";
-import { Trash2 } from "lucide-react";
-
 import { useFuel } from "@/contexts/fuel-context";
-
-import { Button } from "@/components/ui/button";
 
 import {
   Table,
@@ -17,6 +13,8 @@ import {
 } from "@/components/ui/table";
 
 import FuelDialog from "@/components/fuel/fuel-dialog";
+import { toast } from "sonner";
+import { ConfirmDialog } from "../shared/confirm-dialog";
 
 const FuelTable = () => {
   const { fuelEntries, deleteFuelEntry } = useFuel();
@@ -74,16 +72,14 @@ const FuelTable = () => {
                 <div className="flex justify-end gap-1">
                   <FuelDialog entry={entry} />
 
-                  <Button
-                    type="button"
-                    variant="link"
-                    size="icon"
-                    onClick={() => deleteFuelEntry(entry.id)}
-                    aria-label="Delete fuel entry"
-                    className="text-muted-foreground hover:text-destructive"
-                  >
-                    <Trash2 className="size-4" />
-                  </Button>
+                  <ConfirmDialog
+                    title="Delete fuel entry?"
+                    description="This action cannot be undone."
+                    onConfirm={() => {
+                      deleteFuelEntry(entry.id);
+                      toast.success("Fuel entry deleted");
+                    }}
+                  />
                 </div>
               </TableCell>
             </TableRow>

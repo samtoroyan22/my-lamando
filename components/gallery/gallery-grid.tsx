@@ -1,21 +1,14 @@
 "use client";
 
 import { useMemo, useState } from "react";
-
 import Image from "next/image";
-
-import { Trash2 } from "lucide-react";
-
 import { format } from "date-fns";
-
 import { useGallery } from "@/contexts/gallery-context";
-
 import type { GalleryPhoto, PhotoCategory } from "@/types/gallery";
-
-import { Button } from "@/components/ui/button";
-
 import GalleryDialog from "@/components/gallery/gallery-dialog";
 import GalleryLightbox from "@/components/gallery/gallery-lightbox";
+import { ConfirmDialog } from "../shared/confirm-dialog";
+import { toast } from "sonner";
 
 interface GalleryGridProps {
   category: PhotoCategory | "All";
@@ -78,7 +71,6 @@ const GalleryGrid = ({ category }: GalleryGridProps) => {
             key={photo.id}
             className="overflow-hidden rounded-xl border bg-card"
           >
-            {/* Картинка — отдельная кликабельная зона */}
             <button
               type="button"
               onClick={() => openLightbox(photo)}
@@ -96,27 +88,21 @@ const GalleryGrid = ({ category }: GalleryGridProps) => {
               </div>
             </button>
 
-            {/* Информация + кнопки */}
             <div className="relative px-4 py-3.5">
-              {/* Кнопки */}
               <div className="absolute right-3 top-3 flex items-center gap-1">
                 <GalleryDialog entry={photo} />
 
-                <Button
-                  type="button"
-                  variant="ghost"
-                  size="icon"
-                  aria-label="Delete photo"
-                  onClick={() => deleteGalleryEntry(photo.id)}
-                  className="size-8 hover:text-destructive"
-                >
-                  <Trash2 className="size-4" />
-                </Button>
+                <ConfirmDialog
+                  title="Delete gallery entry?"
+                  description="This action cannot be undone."
+                  onConfirm={() => {
+                    deleteGalleryEntry(photo.id);
+                    toast.success("Gallery entry deleted");
+                  }}
+                />
               </div>
 
-              {/* Контент */}
               <div className="min-w-0 pr-20">
-                {/* Название + категория */}
                 <div className="flex min-w-0 items-center gap-2">
                   <p className="min-w-0 truncate text-sm font-medium">
                     {photo.title ?? "Untitled photo"}
@@ -127,7 +113,6 @@ const GalleryGrid = ({ category }: GalleryGridProps) => {
                   </span>
                 </div>
 
-                {/* Дата + пробег */}
                 <div className="mt-1.5 flex items-center gap-1.5 text-xs text-muted-foreground">
                   <span>{format(new Date(photo.date), "dd.MM.yyyy")}</span>
 
@@ -139,7 +124,6 @@ const GalleryGrid = ({ category }: GalleryGridProps) => {
                   )}
                 </div>
 
-                {/* Комментарий */}
                 {photo.comment && (
                   <p className="mt-2 line-clamp-2 text-xs leading-relaxed text-muted-foreground/80">
                     {photo.comment}

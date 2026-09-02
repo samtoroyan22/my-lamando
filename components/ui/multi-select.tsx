@@ -20,7 +20,7 @@ const MultiSelect = ({
   onChange,
   placeholder = "Select works...",
   disabled = false,
-  maxVisible = 4,
+  maxVisible = 3,
 }: MultiSelectProps) => {
   const [open, setOpen] = useState(false);
   const containerRef = useRef<HTMLDivElement>(null);

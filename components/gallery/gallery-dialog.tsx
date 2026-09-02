@@ -38,6 +38,7 @@ import {
   gallerySchema,
   type GalleryFormValues,
 } from "@/schemas/gallery-schema";
+import { toast } from "sonner";
 
 interface GalleryDialogProps {
   entry?: GalleryPhoto;
@@ -197,31 +198,23 @@ const GalleryDialog = ({ entry }: GalleryDialogProps) => {
       return;
     }
 
+    const galleryEntry: GalleryPhoto = {
+      id: entry?.id ?? crypto.randomUUID(),
+      src: imagePreview,
+      title: values.title || undefined,
+      category: values.category,
+      date: new Date(values.date).toISOString(),
+      mileage: values.mileage > 0 ? values.mileage : undefined,
+      comment: values.comment || undefined,
+    };
+
     if (entry) {
-      const updatedEntry: GalleryPhoto = {
-        ...entry,
-        src: imagePreview,
-        title: values.title || undefined,
-        category: values.category,
-        date: new Date(values.date).toISOString(),
-        mileage: values.mileage > 0 ? values.mileage : undefined,
-        comment: values.comment || undefined,
-      };
-
-      updateGalleryEntry(updatedEntry);
+      updateGalleryEntry(galleryEntry);
     } else {
-      const newEntry: GalleryPhoto = {
-        id: crypto.randomUUID(),
-        src: imagePreview,
-        title: values.title || undefined,
-        category: values.category,
-        date: new Date(values.date).toISOString(),
-        mileage: values.mileage > 0 ? values.mileage : undefined,
-        comment: values.comment || undefined,
-      };
-
-      addGalleryEntry(newEntry);
+      addGalleryEntry(galleryEntry);
     }
+
+    toast.success(`Gallery entry ${entry ? "updated" : "added"}`);
 
     setOpen(false);
     form.reset();

@@ -21,6 +21,7 @@ import {
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
+import { toast } from "sonner";
 
 const CarEditForm = () => {
   const { car, updateCar } = useCar();
@@ -89,6 +90,8 @@ const CarEditForm = () => {
     };
 
     updateCar(updatedCar);
+
+    toast.success(`Vehicle information updated`);
 
     setOpen(false);
   };

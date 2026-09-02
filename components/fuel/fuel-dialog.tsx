@@ -12,6 +12,7 @@ import type { FuelEntry } from "@/types/fuel";
 import { fuelSchema, type FuelFormValues } from "@/schemas/fuel-schema";
 
 import { Button } from "@/components/ui/button";
+import { toast } from "sonner";
 
 import {
   Dialog,
@@ -82,46 +83,32 @@ const FuelDialog = ({ entry }: FuelDialogProps) => {
   const onSubmit = (values: FuelFormValues) => {
     const totalCost = values.liters * values.pricePerLiter;
 
+    const fuelEntry: FuelEntry = {
+      id: entry?.id ?? crypto.randomUUID(),
+      date: new Date(values.date).toISOString(),
+      liters: values.liters,
+      pricePerLiter: values.pricePerLiter,
+      totalCost,
+      mileage: values.mileage,
+      fuelType: values.fuelType,
+      note: values.note || undefined,
+    };
+
     if (entry) {
-      const updatedEntry: FuelEntry = {
-        ...entry,
-
-        date: new Date(values.date).toISOString(),
-        liters: values.liters,
-        pricePerLiter: values.pricePerLiter,
-        totalCost,
-        mileage: values.mileage,
-        fuelType: values.fuelType,
-        note: values.note || undefined,
-      };
-
-      updateFuelEntry(updatedEntry);
+      updateFuelEntry(fuelEntry);
     } else {
-      const newEntry: FuelEntry = {
-        id: crypto.randomUUID(),
-
-        date: new Date(values.date).toISOString(),
-
-        liters: values.liters,
-
-        pricePerLiter: values.pricePerLiter,
-
-        totalCost,
-
-        mileage: values.mileage,
-
-        fuelType: values.fuelType,
-
-        note: values.note || undefined,
-      };
-
-      addFuelEntry(newEntry);
+      addFuelEntry(fuelEntry);
     }
+
+    toast.success(`Fuel entry ${entry ? "updated" : "added"}`, {
+      description: `${fuelEntry.liters} L · ${fuelEntry.mileage.toLocaleString(
+        "ru-RU",
+      )} km`,
+    });
 
     setOpen(false);
     form.reset();
   };
-
   return (
     <Dialog open={open} onOpenChange={setOpen}>
       {isEditMode ? (

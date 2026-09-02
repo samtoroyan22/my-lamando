@@ -1,11 +1,7 @@
 "use client";
 
 import { format } from "date-fns";
-import { Trash2 } from "lucide-react";
-
 import { useExpense } from "@/contexts/expense-context";
-
-import { Button } from "@/components/ui/button";
 
 import {
   Table,
@@ -16,6 +12,8 @@ import {
   TableRow,
 } from "@/components/ui/table";
 import ExpenseDialog from "./expense-dialog";
+import { ConfirmDialog } from "../shared/confirm-dialog";
+import { toast } from "sonner";
 
 const ExpenseTable = () => {
   const { expenseEntries, deleteExpenseEntry } = useExpense();
@@ -70,16 +68,14 @@ const ExpenseTable = () => {
                 <div className="flex justify-end gap-1">
                   <ExpenseDialog entry={entry} />
 
-                  <Button
-                    type="button"
-                    variant="link"
-                    size="icon"
-                    onClick={() => deleteExpenseEntry(entry.id)}
-                    aria-label="Delete expense entry"
-                    className="text-muted-foreground hover:text-destructive"
-                  >
-                    <Trash2 className="size-4" />
-                  </Button>
+                  <ConfirmDialog
+                    title="Delete expense entry?"
+                    description="This action cannot be undone."
+                    onConfirm={() => {
+                      deleteExpenseEntry(entry.id);
+                      toast.success("Expense entry deleted");
+                    }}
+                  />
                 </div>
               </TableCell>
             </TableRow>

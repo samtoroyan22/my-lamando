@@ -33,6 +33,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
+import { toast } from "sonner";
 
 interface ExpenseDialogProps {
   entry?: Expense;
@@ -52,15 +53,10 @@ const ExpenseDialog = ({ entry }: ExpenseDialogProps) => {
       date: entry?.date
         ? entry.date.slice(0, 10)
         : new Date().toISOString().slice(0, 10),
-
       category: entry?.category ?? "Maintenance",
-
       title: entry?.title ?? "",
-
       amount: entry?.amount ?? 0,
-
       mileage: entry?.mileage ?? 0,
-
       note: entry?.note ?? "",
     },
   });
@@ -79,57 +75,34 @@ const ExpenseDialog = ({ entry }: ExpenseDialogProps) => {
       date: entry?.date
         ? entry.date.slice(0, 10)
         : new Date().toISOString().slice(0, 10),
-
       category: entry?.category ?? "Maintenance",
-
       title: entry?.title ?? "",
-
       amount: entry?.amount ?? 0,
-
       mileage: entry?.mileage ?? 0,
-
       note: entry?.note ?? "",
     });
   }, [open, entry, form]);
 
   const onSubmit = (values: ExpenseFormValues) => {
+    const expenseEntry: Expense = {
+      id: entry?.id ?? crypto.randomUUID(),
+      date: new Date(values.date).toISOString(),
+      category: values.category,
+      title: values.title,
+      amount: values.amount,
+      mileage: values.mileage,
+      note: values.note || undefined,
+    };
+
     if (entry) {
-      const updatedEntry: Expense = {
-        ...entry,
-
-        date: new Date(values.date).toISOString(),
-
-        category: values.category,
-
-        title: values.title,
-
-        amount: values.amount,
-
-        mileage: values.mileage,
-
-        note: values.note || undefined,
-      };
-
-      updateExpenseEntry(updatedEntry);
+      updateExpenseEntry(expenseEntry);
     } else {
-      const newEntry: Expense = {
-        id: crypto.randomUUID(),
-
-        date: new Date(values.date).toISOString(),
-
-        category: values.category,
-
-        title: values.title,
-
-        amount: values.amount,
-
-        mileage: values.mileage,
-
-        note: values.note || undefined,
-      };
-
-      addExpenseEntry(newEntry);
+      addExpenseEntry(expenseEntry);
     }
+
+    toast.success(`Expense entry ${entry ? "updated" : "added"}`, {
+      description: `${expenseEntry.title} · ${expenseEntry.amount.toFixed(2)} ₽`,
+    });
 
     setOpen(false);
     form.reset();

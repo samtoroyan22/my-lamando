@@ -1,14 +1,12 @@
 "use client";
 
 import { format } from "date-fns";
-import { ChevronRight, Trash2 } from "lucide-react";
-
+import { ChevronRight } from "lucide-react";
 import { useService } from "@/contexts/service-context";
-
-import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-
 import ServiceDialog from "@/components/service/service-dialog";
+import { ConfirmDialog } from "../shared/confirm-dialog";
+import { toast } from "sonner";
 
 const formatNumber = (value: number) =>
   new Intl.NumberFormat("ru-RU").format(value);
@@ -101,16 +99,14 @@ const ServiceHistory = () => {
                 <div className="flex items-center gap-1">
                   <ServiceDialog entry={entry} />
 
-                  <Button
-                    type="button"
-                    variant="ghost"
-                    size="icon"
-                    aria-label="Delete service"
-                    className="text-muted-foreground hover:text-destructive"
-                    onClick={() => deleteServiceEntry(entry.id)}
-                  >
-                    <Trash2 className="size-4" />
-                  </Button>
+                  <ConfirmDialog
+                    title="Delete service entry?"
+                    description="This action cannot be undone."
+                    onConfirm={() => {
+                      deleteServiceEntry(entry.id);
+                      toast.success("Service entry deleted");
+                    }}
+                  />
 
                   <ChevronRight className="hidden size-4 text-muted-foreground sm:block" />
                 </div>
