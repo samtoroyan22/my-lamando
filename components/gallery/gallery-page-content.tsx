@@ -3,9 +3,10 @@
 import { useState } from "react";
 
 import type { PhotoCategory } from "@/types/gallery";
+import { useGallery } from "@/contexts/gallery-context";
 
-import GalleryDialog from "@/components/gallery/gallery-dialog";
 import GalleryGrid from "@/components/gallery/gallery-grid";
+import GallerySkeleton from "@/components/gallery/gallery-skeleton";
 import { Button } from "../ui/button";
 
 const categories: Array<PhotoCategory | "All"> = [
@@ -21,22 +22,15 @@ const categories: Array<PhotoCategory | "All"> = [
 ];
 
 const GalleryPageContent = () => {
+  const { isLoading } = useGallery();
   const [category, setCategory] = useState<PhotoCategory | "All">("All");
+
+  if (isLoading) {
+    return <GallerySkeleton />;
+  }
 
   return (
     <div className="space-y-6">
-      <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
-        <div>
-          <h1 className="text-2xl font-semibold tracking-tight">Gallery</h1>
-
-          <p className="mt-1 text-sm text-muted-foreground">
-            Visual history of your Lamando.
-          </p>
-        </div>
-
-        <GalleryDialog />
-      </div>
-
       <div className="flex gap-2 overflow-x-auto pb-1">
         {categories.map((item) => {
           const isActive = category === item;

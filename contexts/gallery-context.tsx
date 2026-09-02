@@ -20,6 +20,7 @@ import type { GalleryPhoto } from "@/types/gallery";
 
 interface GalleryContextValue {
   galleryEntries: GalleryPhoto[];
+  isLoading: boolean;
   addGalleryEntry: (entry: GalleryPhoto) => void;
   updateGalleryEntry: (entry: GalleryPhoto) => void;
   deleteGalleryEntry: (id: string) => void;
@@ -31,19 +32,30 @@ const GalleryContext = createContext<GalleryContextValue | undefined>(
 
 export function GalleryProvider({ children }: { children: ReactNode }) {
   const [galleryEntries, setGalleryEntries] = useState<GalleryPhoto[]>([]);
+  const [isLoading, setIsLoading] = useState(true);
 
-  // загрузка данных из локального хранилища при монтировании компонента
   useEffect(() => {
+    const startedAt = Date.now();
+
     const storedEntries = getGalleryPhotos();
 
-    startTransition(() => {
-      setGalleryEntries(storedEntries);
-    });
+    const elapsed = Date.now() - startedAt;
+    const remainingDelay = Math.max(500 - elapsed, 0);
+
+    const timeoutId = setTimeout(() => {
+      startTransition(() => {
+        setGalleryEntries(storedEntries);
+        setIsLoading(false);
+      });
+    }, remainingDelay);
+
+    return () => {
+      clearTimeout(timeoutId);
+    };
   }, []);
 
   const addGalleryEntry = (entry: GalleryPhoto) => {
     setGalleryEntries((currentEntries) => [...currentEntries, entry]);
-
     saveGalleryPhoto(entry);
   };
 
@@ -53,7 +65,6 @@ export function GalleryProvider({ children }: { children: ReactNode }) {
         entry.id === updatedEntry.id ? updatedEntry : entry,
       ),
     );
-
     saveUpdatedGalleryPhoto(updatedEntry);
   };
 
@@ -61,7 +72,6 @@ export function GalleryProvider({ children }: { children: ReactNode }) {
     setGalleryEntries((currentEntries) =>
       currentEntries.filter((entry) => entry.id !== id),
     );
-
     removeGalleryPhoto(id);
   };
 
@@ -69,6 +79,7 @@ export function GalleryProvider({ children }: { children: ReactNode }) {
     <GalleryContext.Provider
       value={{
         galleryEntries,
+        isLoading,
         addGalleryEntry,
         updateGalleryEntry,
         deleteGalleryEntry,

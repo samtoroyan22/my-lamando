@@ -15,15 +15,19 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 
 import { Badge } from "@/components/ui/badge";
 import InfoItem from "./car-info-item";
+import CarSkeleton from "./car-skeleton";
 
 const CarInfo = () => {
-  const { car } = useCar();
+  const { car, isLoading } = useCar();
+
+  if (isLoading) {
+    return <CarSkeleton />;
+  }
 
   const formattedMileage = new Intl.NumberFormat("ru-RU").format(car.mileage);
 
   return (
     <div className="space-y-6">
-      {/* Hero */}
       <Card className="overflow-hidden">
         <CardContent className="p-0">
           <div className="relative">
@@ -91,7 +95,6 @@ const CarInfo = () => {
         </CardContent>
       </Card>
 
-      {/* General information */}
       <Card>
         <CardHeader>
           <CardTitle className="flex items-center gap-2">
@@ -129,7 +132,6 @@ const CarInfo = () => {
         </CardContent>
       </Card>
 
-      {/* Technical information */}
       <Card>
         <CardHeader>
           <CardTitle className="flex items-center gap-2">

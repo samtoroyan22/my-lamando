@@ -20,7 +20,7 @@ import {
 
 interface FuelContextValue {
   fuelEntries: FuelEntry[];
-
+  isLoading: boolean;
   addFuelEntry: (entry: FuelEntry) => void;
   updateFuelEntry: (entry: FuelEntry) => void;
   deleteFuelEntry: (id: string) => void;
@@ -30,19 +30,29 @@ const FuelContext = createContext<FuelContextValue | undefined>(undefined);
 
 export function FuelProvider({ children }: { children: ReactNode }) {
   const [fuelEntries, setFuelEntries] = useState<FuelEntry[]>([]);
+  const [isLoading, setIsLoading] = useState(true);
 
-  // загрузка данных из локального хранилища при монтировании компонента
   useEffect(() => {
+    const startedAt = Date.now();
     const storedEntries = getFuelEntries();
 
-    startTransition(() => {
-      setFuelEntries(storedEntries);
-    });
+    const elapsed = Date.now() - startedAt;
+    const remainingDelay = Math.max(500 - elapsed, 0);
+
+    const timeoutId = setTimeout(() => {
+      startTransition(() => {
+        setFuelEntries(storedEntries);
+        setIsLoading(false);
+      });
+    }, remainingDelay);
+
+    return () => {
+      clearTimeout(timeoutId);
+    };
   }, []);
 
   const addFuelEntry = (entry: FuelEntry) => {
     setFuelEntries((currentEntries) => [...currentEntries, entry]);
-
     saveFuelEntry(entry);
   };
 
@@ -52,7 +62,6 @@ export function FuelProvider({ children }: { children: ReactNode }) {
         entry.id === updatedEntry.id ? updatedEntry : entry,
       ),
     );
-
     saveUpdatedFuelEntry(updatedEntry);
   };
 
@@ -60,7 +69,6 @@ export function FuelProvider({ children }: { children: ReactNode }) {
     setFuelEntries((currentEntries) =>
       currentEntries.filter((entry) => entry.id !== id),
     );
-
     removeFuelEntry(id);
   };
 
@@ -68,6 +76,7 @@ export function FuelProvider({ children }: { children: ReactNode }) {
     <FuelContext.Provider
       value={{
         fuelEntries,
+        isLoading,
         addFuelEntry,
         updateFuelEntry,
         deleteFuelEntry,

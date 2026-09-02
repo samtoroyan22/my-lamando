@@ -20,6 +20,7 @@ import { Expense } from "@/types/expense";
 
 interface ExpenseContextValue {
   expenseEntries: Expense[];
+  isLoading: boolean;
   addExpenseEntry: (entry: Expense) => void;
   updateExpenseEntry: (entry: Expense) => void;
   deleteExpenseEntry: (id: string) => void;
@@ -31,19 +32,30 @@ const ExpenseContext = createContext<ExpenseContextValue | undefined>(
 
 export function ExpenseProvider({ children }: { children: ReactNode }) {
   const [expenseEntries, setExpenseEntries] = useState<Expense[]>([]);
+  const [isLoading, setIsLoading] = useState(true);
 
-  // загрузка данных из локального хранилища при монтировании компонента
   useEffect(() => {
+    const startedAt = Date.now();
+
     const storedEntries = getExpenses();
 
-    startTransition(() => {
-      setExpenseEntries(storedEntries);
-    });
+    const elapsed = Date.now() - startedAt;
+    const remainingDelay = Math.max(500 - elapsed, 0);
+
+    const timeoutId = setTimeout(() => {
+      startTransition(() => {
+        setExpenseEntries(storedEntries);
+        setIsLoading(false);
+      });
+    }, remainingDelay);
+
+    return () => {
+      clearTimeout(timeoutId);
+    };
   }, []);
 
   const addExpenseEntry = (entry: Expense) => {
     setExpenseEntries((currentEntries) => [...currentEntries, entry]);
-
     saveExpense(entry);
   };
 
@@ -53,7 +65,6 @@ export function ExpenseProvider({ children }: { children: ReactNode }) {
         entry.id === updatedEntry.id ? updatedEntry : entry,
       ),
     );
-
     saveUpdatedExpense(updatedEntry);
   };
 
@@ -61,7 +72,6 @@ export function ExpenseProvider({ children }: { children: ReactNode }) {
     setExpenseEntries((currentEntries) =>
       currentEntries.filter((entry) => entry.id !== id),
     );
-
     removeExpense(id);
   };
 
@@ -69,6 +79,7 @@ export function ExpenseProvider({ children }: { children: ReactNode }) {
     <ExpenseContext.Provider
       value={{
         expenseEntries,
+        isLoading,
         addExpenseEntry,
         updateExpenseEntry,
         deleteExpenseEntry,

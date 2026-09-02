@@ -16,6 +16,7 @@ import { getCar, updateCar as saveCar } from "@/lib/storage/car-storage";
 
 interface CarContextValue {
   car: Car;
+  isLoading: boolean;
   updateCar: (car: Car) => void;
 }
 
@@ -23,13 +24,25 @@ const CarContext = createContext<CarContextValue | undefined>(undefined);
 
 export function CarProvider({ children }: { children: ReactNode }) {
   const [car, setCar] = useState<Car>(initialCar);
+  const [isLoading, setIsLoading] = useState(true);
 
   useEffect(() => {
+    const startedAt = Date.now();
     const storedCar = getCar();
 
-    startTransition(() => {
-      setCar(storedCar);
-    });
+    const elapsed = Date.now() - startedAt;
+    const remainingDelay = Math.max(500 - elapsed, 0);
+
+    const timeoutId = setTimeout(() => {
+      startTransition(() => {
+        setCar(storedCar);
+        setIsLoading(false);
+      });
+    }, remainingDelay);
+
+    return () => {
+      clearTimeout(timeoutId);
+    };
   }, []);
 
   const updateCar = (updatedCar: Car) => {
@@ -41,6 +54,7 @@ export function CarProvider({ children }: { children: ReactNode }) {
     <CarContext.Provider
       value={{
         car,
+        isLoading,
         updateCar,
       }}
     >
