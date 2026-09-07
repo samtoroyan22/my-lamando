@@ -1,19 +1,19 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import { Edit, ImagePlus } from "lucide-react";
-
+import { ImagePlus, Edit } from "lucide-react";
 import { useForm, useWatch } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
-
 import Image from "next/image";
 
 import { useGallery } from "@/contexts/gallery-context";
-
 import type { GalleryPhoto, PhotoCategory } from "@/types/gallery";
+import {
+  gallerySchema,
+  type GalleryFormValues,
+} from "@/schemas/gallery-schema";
 
 import { Button } from "@/components/ui/button";
-
 import {
   Dialog,
   DialogContent,
@@ -21,9 +21,7 @@ import {
   DialogTitle,
   DialogTrigger,
 } from "@/components/ui/dialog";
-
 import { Input } from "@/components/ui/input";
-
 import {
   Select,
   SelectContent,
@@ -31,13 +29,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-
 import { Textarea } from "@/components/ui/textarea";
-
-import {
-  gallerySchema,
-  type GalleryFormValues,
-} from "@/schemas/gallery-schema";
 import { toast } from "sonner";
 
 interface GalleryDialogProps {
@@ -71,13 +63,11 @@ const compressImage = (file: File): Promise<string> => {
 
         if (width > maxWidth || height > maxHeight) {
           const ratio = Math.min(maxWidth / width, maxHeight / height);
-
           width = Math.round(width * ratio);
           height = Math.round(height * ratio);
         }
 
         const canvas = document.createElement("canvas");
-
         canvas.width = width;
         canvas.height = height;
 
@@ -89,43 +79,29 @@ const compressImage = (file: File): Promise<string> => {
         }
 
         context.drawImage(image, 0, 0, width, height);
-
-        const result = canvas.toDataURL("image/jpeg", 0.8);
-
-        resolve(result);
+        resolve(canvas.toDataURL("image/jpeg", 0.8));
       };
 
-      image.onerror = () => {
-        reject(new Error("Unable to load image"));
-      };
-
+      image.onerror = () => reject(new Error("Unable to load image"));
       image.src = reader.result as string;
     };
 
-    reader.onerror = () => {
-      reject(new Error("Unable to read image"));
-    };
-
+    reader.onerror = () => reject(new Error("Unable to read image"));
     reader.readAsDataURL(file);
   });
 };
 
 const GalleryDialog = ({ entry }: GalleryDialogProps) => {
   const { addGalleryEntry, updateGalleryEntry } = useGallery();
-
   const [open, setOpen] = useState(false);
-
   const [imagePreview, setImagePreview] = useState<string | undefined>(
     entry?.src,
   );
-
   const [imageError, setImageError] = useState<string | undefined>();
-
   const isEditMode = Boolean(entry);
 
   const form = useForm<GalleryFormValues>({
     resolver: zodResolver(gallerySchema),
-
     defaultValues: {
       title: entry?.title ?? "",
       category: entry?.category ?? "Exterior",
@@ -143,9 +119,7 @@ const GalleryDialog = ({ entry }: GalleryDialogProps) => {
   });
 
   useEffect(() => {
-    if (!open) {
-      return;
-    }
+    if (!open) return;
 
     form.reset({
       title: entry?.title ?? "",
@@ -162,10 +136,7 @@ const GalleryDialog = ({ entry }: GalleryDialogProps) => {
     event: React.ChangeEvent<HTMLInputElement>,
   ) => {
     const file = event.target.files?.[0];
-
-    if (!file) {
-      return;
-    }
+    if (!file) return;
 
     if (!file.type.startsWith("image/")) {
       setImageError("Please select an image file.");
@@ -174,9 +145,7 @@ const GalleryDialog = ({ entry }: GalleryDialogProps) => {
 
     try {
       setImageError(undefined);
-
       const compressedImage = await compressImage(file);
-
       setImagePreview(compressedImage);
     } catch {
       setImageError("Failed to process image.");
@@ -185,7 +154,6 @@ const GalleryDialog = ({ entry }: GalleryDialogProps) => {
 
   const handleOpenChange = (nextOpen: boolean) => {
     setOpen(nextOpen);
-
     if (nextOpen) {
       setImagePreview(entry?.src);
       setImageError(undefined);
@@ -215,7 +183,6 @@ const GalleryDialog = ({ entry }: GalleryDialogProps) => {
     }
 
     toast.success(`Gallery entry ${entry ? "updated" : "added"}`);
-
     setOpen(false);
     form.reset();
     setImagePreview(undefined);
@@ -224,7 +191,7 @@ const GalleryDialog = ({ entry }: GalleryDialogProps) => {
   return (
     <Dialog open={open} onOpenChange={handleOpenChange}>
       {isEditMode ? (
-        <DialogTrigger className="inline-flex size-8 shrink-0 items-center justify-center rounded-md border-0 hover:text-amber-400 transition-all outline-none hover:bg-secondary/90 cursor-pointer">
+        <DialogTrigger className="inline-flex size-8 shrink-0 items-center justify-center rounded-md border-0 hover:text-amber-400 transition-all outline-none  cursor-pointer">
           <Edit className="size-4" />
         </DialogTrigger>
       ) : (
@@ -240,13 +207,10 @@ const GalleryDialog = ({ entry }: GalleryDialogProps) => {
         </DialogHeader>
 
         <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-5">
-          {/* IMAGE */}
-
           <div className="space-y-2">
             <label htmlFor="gallery-image" className="text-sm font-medium">
               Image
             </label>
-
             <Input
               id="gallery-image"
               type="file"
@@ -255,7 +219,7 @@ const GalleryDialog = ({ entry }: GalleryDialogProps) => {
             />
 
             {imagePreview && (
-              <div className="relative h-48 overflow-hidden rounded-lg border">
+              <div className="relative h-48 overflow-hidden rounded-xl border border-border/60">
                 <Image
                   src={imagePreview}
                   alt="Preview"
@@ -268,17 +232,16 @@ const GalleryDialog = ({ entry }: GalleryDialogProps) => {
             )}
 
             {imageError && (
-              <p className="text-sm text-destructive">{imageError}</p>
+              <p className="text-sm text-destructive" role="alert">
+                {imageError}
+              </p>
             )}
           </div>
-
-          {/* TITLE */}
 
           <div className="space-y-2">
             <label htmlFor="gallery-title" className="text-sm font-medium">
               Title
             </label>
-
             <Input
               id="gallery-title"
               placeholder="e.g. Front view"
@@ -286,18 +249,12 @@ const GalleryDialog = ({ entry }: GalleryDialogProps) => {
             />
           </div>
 
-          {/* CATEGORY */}
-
           <div className="space-y-2">
             <label className="text-sm font-medium">Category</label>
-
             <Select
               value={category}
               onValueChange={(value) => {
-                if (value === null) {
-                  return;
-                }
-
+                if (value === null) return;
                 form.setValue("category", value as PhotoCategory, {
                   shouldValidate: true,
                 });
@@ -306,7 +263,6 @@ const GalleryDialog = ({ entry }: GalleryDialogProps) => {
               <SelectTrigger>
                 <SelectValue placeholder="Select category" />
               </SelectTrigger>
-
               <SelectContent>
                 {categories.map((item) => (
                   <SelectItem key={item} value={item}>
@@ -315,22 +271,18 @@ const GalleryDialog = ({ entry }: GalleryDialogProps) => {
                 ))}
               </SelectContent>
             </Select>
-
             {form.formState.errors.category && (
-              <p className="text-sm text-destructive">
+              <p className="text-sm text-destructive" role="alert">
                 {form.formState.errors.category.message}
               </p>
             )}
           </div>
-
-          {/* DATE + MILEAGE */}
 
           <div className="grid gap-4 sm:grid-cols-2">
             <div className="space-y-2">
               <label htmlFor="gallery-date" className="text-sm font-medium">
                 Date
               </label>
-
               <Input id="gallery-date" type="date" {...form.register("date")} />
             </div>
 
@@ -338,25 +290,19 @@ const GalleryDialog = ({ entry }: GalleryDialogProps) => {
               <label htmlFor="gallery-mileage" className="text-sm font-medium">
                 Mileage
               </label>
-
               <Input
                 id="gallery-mileage"
                 type="number"
                 min="0"
-                {...form.register("mileage", {
-                  valueAsNumber: true,
-                })}
+                {...form.register("mileage", { valueAsNumber: true })}
               />
             </div>
           </div>
-
-          {/* COMMENT */}
 
           <div className="space-y-2">
             <label htmlFor="gallery-comment" className="text-sm font-medium">
               Comment
             </label>
-
             <Textarea
               id="gallery-comment"
               placeholder="Optional"
@@ -364,9 +310,7 @@ const GalleryDialog = ({ entry }: GalleryDialogProps) => {
             />
           </div>
 
-          {/* ACTIONS */}
-
-          <div className="flex justify-end gap-2">
+          <div className="flex justify-end gap-2 pt-2">
             <Button
               type="button"
               variant="outline"
@@ -374,7 +318,6 @@ const GalleryDialog = ({ entry }: GalleryDialogProps) => {
             >
               Cancel
             </Button>
-
             <Button type="submit">
               {isEditMode ? "Save changes" : "Add photo"}
             </Button>

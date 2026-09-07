@@ -7,12 +7,12 @@ import {
   Palette,
   Settings2,
   Zap,
+  Hash,
 } from "lucide-react";
+import { motion } from "motion/react";
 
 import { useCar } from "@/contexts/car-context";
-
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-
 import { Badge } from "@/components/ui/badge";
 import InfoItem from "./car-info-item";
 import CarSkeleton from "./car-skeleton";
@@ -28,32 +28,27 @@ const CarInfo = () => {
 
   return (
     <div className="space-y-6">
-      <Card className="overflow-hidden">
-        <CardContent className="p-0">
-          <div className="relative">
-            <div className="absolute inset-0 from-muted/80 via-background to-background" />
-
-            <div className="relative flex flex-col gap-6 p-6 sm:p-8">
-              <div className="flex flex-col gap-4 sm:flex-row sm:items-start sm:justify-between">
-                <div className="space-y-2">
-                  <div className="flex items-center gap-2">
-                    <CarFront className="size-5 text-muted-foreground" />
-
-                    <span className="text-sm text-muted-foreground">
-                      My vehicle
-                    </span>
-                  </div>
-
-                  <h1 className="text-3xl font-semibold tracking-tight sm:text-4xl">
+      <motion.div
+        initial={{ opacity: 0, y: 12 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ duration: 0.35, ease: "easeOut" }}
+      >
+        <Card className="overflow-hidden border-border/60">
+          <CardContent>
+            <div className="flex flex-col gap-6">
+              <div className="flex flex-col gap-5 sm:flex-row sm:items-start sm:justify-between">
+                <div className="space-y-3">
+                  <h2 className="text-3xl font-semibold tracking-tight sm:text-[2.5rem] sm:leading-tight">
                     {car.brand} {car.model}
-                  </h1>
+                  </h2>
 
                   <div className="flex flex-wrap items-center gap-2">
-                    <Badge variant="secondary">{car.year}</Badge>
-
-                    <Badge variant="outline">{car.engine.type}</Badge>
-
-                    <Badge variant="outline">{car.transmission}</Badge>
+                    <Badge variant="secondary" className="text-sm">
+                      {car.year}
+                    </Badge>
+                    <Badge variant="outline" className="text-sm">
+                      {car.engine.type}
+                    </Badge>
                   </div>
                 </div>
 
@@ -61,126 +56,187 @@ const CarInfo = () => {
                   <p className="text-sm text-muted-foreground">
                     Current mileage
                   </p>
-
-                  <p className="text-3xl font-semibold tracking-tight">
+                  <p className="mt-1 text-3xl font-semibold tracking-tight tabular-nums sm:text-4xl">
                     {formattedMileage}
-                    <span className="ml-1 text-base font-normal text-muted-foreground">
+                    <span className="ml-1.5 text-base font-normal text-muted-foreground">
                       km
                     </span>
                   </p>
                 </div>
               </div>
 
-              <div className="grid gap-4 sm:grid-cols-3">
+              <div className="grid gap-3 sm:grid-cols-3">
                 <InfoItem
-                  icon={<CarFront className="size-4" />}
+                  icon={
+                    <span className="flex size-8 items-center justify-center rounded-full bg-sky-500/10 text-sky-600 dark:bg-sky-500/15 dark:text-sky-400">
+                      <CarFront className="size-4" />
+                    </span>
+                  }
                   label="Engine"
                   value={car.engine.type}
                 />
-
                 <InfoItem
-                  icon={<Zap className="size-4" />}
+                  icon={
+                    <span className="flex size-8 items-center justify-center rounded-full bg-sky-500/10 text-sky-600 dark:bg-sky-500/15 dark:text-sky-400">
+                      <Zap className="size-4" />
+                    </span>
+                  }
                   label="Power"
                   value={`${car.engine.power} HP`}
                 />
-
                 <InfoItem
-                  icon={<Settings2 className="size-4" />}
+                  icon={
+                    <span className="flex size-8 items-center justify-center rounded-full bg-sky-500/10 text-sky-600 dark:bg-sky-500/15 dark:text-sky-400">
+                      <Settings2 className="size-4" />
+                    </span>
+                  }
                   label="Transmission"
                   value={car.transmission}
                 />
               </div>
             </div>
-          </div>
-        </CardContent>
-      </Card>
+          </CardContent>
+        </Card>
+      </motion.div>
 
-      <Card>
-        <CardHeader>
-          <CardTitle className="flex items-center gap-2">
-            <CarFront className="size-5" />
-            General information
-          </CardTitle>
-        </CardHeader>
+      {/* General information */}
+      <motion.div
+        initial={{ opacity: 0, y: 12 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ duration: 0.35, delay: 0.05, ease: "easeOut" }}
+      >
+        <Card className="border-border/60">
+          <CardHeader className="pb-4">
+            <CardTitle className="flex items-center gap-2 text-base font-semibold sm:text-lg">
+              <CarFront
+                className="size-4 text-sky-600 dark:text-sky-400"
+                aria-hidden="true"
+              />
+              General information
+            </CardTitle>
+          </CardHeader>
 
-        <CardContent>
-          <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
-            <InfoItem
-              icon={<Gauge className="size-4" />}
-              label="Mileage"
-              value={`${formattedMileage} km`}
-            />
+          <CardContent>
+            <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
+              <InfoItem
+                icon={
+                  <span className="flex size-8 items-center justify-center rounded-full bg-muted text-muted-foreground">
+                    <Gauge className="size-4" />
+                  </span>
+                }
+                label="Mileage"
+                value={`${formattedMileage} km`}
+              />
+              <InfoItem
+                icon={
+                  <span className="flex size-8 items-center justify-center rounded-full bg-muted text-muted-foreground">
+                    <CalendarDays className="size-4" />
+                  </span>
+                }
+                label="Year"
+                value={String(car.year)}
+              />
+              <InfoItem
+                icon={
+                  <span className="flex size-8 items-center justify-center rounded-full bg-muted text-muted-foreground">
+                    <Palette className="size-4" />
+                  </span>
+                }
+                label="Color"
+                value={car.color || "Not specified"}
+              />
+              <InfoItem
+                icon={
+                  <span className="flex size-8 items-center justify-center rounded-full bg-muted text-muted-foreground">
+                    <CalendarDays className="size-4" />
+                  </span>
+                }
+                label="Purchase date"
+                value={car.purchaseDate || "Not specified"}
+              />
+            </div>
+          </CardContent>
+        </Card>
+      </motion.div>
 
-            <InfoItem
-              icon={<CalendarDays className="size-4" />}
-              label="Year"
-              value={String(car.year)}
-            />
+      {/* Technical information */}
+      <motion.div
+        initial={{ opacity: 0, y: 12 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ duration: 0.35, delay: 0.1, ease: "easeOut" }}
+      >
+        <Card className="border-border/60">
+          <CardHeader className="pb-4">
+            <CardTitle className="flex items-center gap-2 text-base font-semibold sm:text-lg">
+              <Settings2
+                className="size-4 text-sky-600 dark:text-sky-400"
+                aria-hidden="true"
+              />
+              Technical information
+            </CardTitle>
+          </CardHeader>
 
-            <InfoItem
-              icon={<Palette className="size-4" />}
-              label="Color"
-              value={car.color || "Not specified"}
-            />
-
-            <InfoItem
-              icon={<CalendarDays className="size-4" />}
-              label="Purchase date"
-              value={car.purchaseDate || "Not specified"}
-            />
-          </div>
-        </CardContent>
-      </Card>
-
-      <Card>
-        <CardHeader>
-          <CardTitle className="flex items-center gap-2">
-            <Settings2 className="size-5" />
-            Technical information
-          </CardTitle>
-        </CardHeader>
-
-        <CardContent>
-          <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
-            <InfoItem
-              icon={<CarFront className="size-4" />}
-              label="Engine"
-              value={car.engine.type}
-            />
-
-            <InfoItem
-              icon={<Zap className="size-4" />}
-              label="Displacement"
-              value={`${car.engine.displacement} L`}
-            />
-
-            <InfoItem
-              icon={<Zap className="size-4" />}
-              label="Power"
-              value={`${car.engine.power} HP`}
-            />
-
-            <InfoItem
-              icon={<Settings2 className="size-4" />}
-              label="Transmission"
-              value={car.transmission}
-            />
-
-            <InfoItem
-              icon={<Palette className="size-4" />}
-              label="Color"
-              value={car.color || "Not specified"}
-            />
-
-            <InfoItem
-              icon={<CarFront className="size-4" />}
-              label="VIN"
-              value={car.vin || "Not specified"}
-              mono={Boolean(car.vin)}
-            />
-          </div>
-        </CardContent>
-      </Card>
+          <CardContent>
+            <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
+              <InfoItem
+                icon={
+                  <span className="flex size-8 items-center justify-center rounded-full bg-muted text-muted-foreground">
+                    <CarFront className="size-4" />
+                  </span>
+                }
+                label="Engine"
+                value={car.engine.type}
+              />
+              <InfoItem
+                icon={
+                  <span className="flex size-8 items-center justify-center rounded-full bg-muted text-muted-foreground">
+                    <Zap className="size-4" />
+                  </span>
+                }
+                label="Displacement"
+                value={`${car.engine.displacement} L`}
+              />
+              <InfoItem
+                icon={
+                  <span className="flex size-8 items-center justify-center rounded-full bg-muted text-muted-foreground">
+                    <Zap className="size-4" />
+                  </span>
+                }
+                label="Power"
+                value={`${car.engine.power} HP`}
+              />
+              <InfoItem
+                icon={
+                  <span className="flex size-8 items-center justify-center rounded-full bg-muted text-muted-foreground">
+                    <Settings2 className="size-4" />
+                  </span>
+                }
+                label="Transmission"
+                value={car.transmission}
+              />
+              <InfoItem
+                icon={
+                  <span className="flex size-8 items-center justify-center rounded-full bg-muted text-muted-foreground">
+                    <Palette className="size-4" />
+                  </span>
+                }
+                label="Color"
+                value={car.color || "Not specified"}
+              />
+              <InfoItem
+                icon={
+                  <span className="flex size-8 items-center justify-center rounded-full bg-muted text-muted-foreground">
+                    <Hash className="size-4" />
+                  </span>
+                }
+                label="VIN"
+                value={car.vin || "Not specified"}
+                mono={Boolean(car.vin)}
+              />
+            </div>
+          </CardContent>
+        </Card>
+      </motion.div>
     </div>
   );
 };

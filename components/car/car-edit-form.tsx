@@ -6,7 +6,6 @@ import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 
 import { useCar } from "@/contexts/car-context";
-
 import { carSchema, type CarFormValues } from "@/schemas/car-schema";
 
 import {
@@ -17,7 +16,6 @@ import {
   DialogTitle,
   DialogTrigger,
 } from "@/components/ui/dialog";
-
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -25,7 +23,6 @@ import { toast } from "sonner";
 
 const CarEditForm = () => {
   const { car, updateCar } = useCar();
-
   const [open, setOpen] = useState(false);
 
   const {
@@ -35,7 +32,6 @@ const CarEditForm = () => {
     formState: { errors },
   } = useForm<CarFormValues>({
     resolver: zodResolver(carSchema),
-
     defaultValues: {
       brand: car.brand,
       model: car.model,
@@ -70,18 +66,15 @@ const CarEditForm = () => {
   const onSubmit = (data: CarFormValues) => {
     const updatedCar = {
       ...car,
-
       brand: data.brand,
       model: data.model,
       year: data.year,
-
       engine: {
         ...car.engine,
         type: data.engineType,
         displacement: data.displacement,
         power: data.power,
       },
-
       transmission: data.transmission,
       mileage: data.mileage,
       vin: data.vin,
@@ -90,9 +83,7 @@ const CarEditForm = () => {
     };
 
     updateCar(updatedCar);
-
-    toast.success(`Vehicle information updated`);
-
+    toast.success("Vehicle information updated");
     setOpen(false);
   };
 
@@ -106,7 +97,6 @@ const CarEditForm = () => {
       <DialogContent className="max-h-[90vh] overflow-y-auto sm:max-w-2xl">
         <DialogHeader>
           <DialogTitle>Edit vehicle</DialogTitle>
-
           <DialogDescription>
             Update your vehicle information. Changes are saved locally.
           </DialogDescription>
@@ -126,9 +116,7 @@ const CarEditForm = () => {
               <Input
                 id="year"
                 type="number"
-                {...register("year", {
-                  valueAsNumber: true,
-                })}
+                {...register("year", { valueAsNumber: true })}
               />
             </FormField>
 
@@ -139,10 +127,9 @@ const CarEditForm = () => {
 
           <div className="space-y-4">
             <div>
-              <h3 className="font-medium">Engine</h3>
-
+              <h3 className="text-sm font-medium">Engine</h3>
               <p className="text-sm text-muted-foreground">
-                Engine specifications.
+                Engine specifications
               </p>
             </div>
 
@@ -164,9 +151,7 @@ const CarEditForm = () => {
                   id="displacement"
                   type="number"
                   step="0.1"
-                  {...register("displacement", {
-                    valueAsNumber: true,
-                  })}
+                  {...register("displacement", { valueAsNumber: true })}
                 />
               </FormField>
 
@@ -178,9 +163,7 @@ const CarEditForm = () => {
                 <Input
                   id="power"
                   type="number"
-                  {...register("power", {
-                    valueAsNumber: true,
-                  })}
+                  {...register("power", { valueAsNumber: true })}
                 />
               </FormField>
             </div>
@@ -203,9 +186,7 @@ const CarEditForm = () => {
               <Input
                 id="mileage"
                 type="number"
-                {...register("mileage", {
-                  valueAsNumber: true,
-                })}
+                {...register("mileage", { valueAsNumber: true })}
               />
             </FormField>
 
@@ -226,7 +207,14 @@ const CarEditForm = () => {
             </FormField>
           </div>
 
-          <div className="flex justify-end">
+          <div className="flex justify-end gap-3 pt-2">
+            <Button
+              type="button"
+              variant="outline"
+              onClick={() => setOpen(false)}
+            >
+              Cancel
+            </Button>
             <Button type="submit">Save changes</Button>
           </div>
         </form>
@@ -246,10 +234,12 @@ function FormField({ id, label, error, children }: FormFieldProps) {
   return (
     <div className="space-y-2">
       <Label htmlFor={id}>{label}</Label>
-
       {children}
-
-      {error && <p className="text-sm text-destructive">{error}</p>}
+      {error && (
+        <p className="text-sm text-destructive" role="alert">
+          {error}
+        </p>
+      )}
     </div>
   );
 }

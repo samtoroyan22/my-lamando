@@ -2,18 +2,15 @@
 
 import { useEffect, useState } from "react";
 import { Plus, Pencil } from "lucide-react";
-
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useForm, useWatch } from "react-hook-form";
 
 import { useFuel } from "@/contexts/fuel-context";
 import type { FuelEntry } from "@/types/fuel";
-
 import { fuelSchema, type FuelFormValues } from "@/schemas/fuel-schema";
 
 import { Button } from "@/components/ui/button";
 import { toast } from "sonner";
-
 import {
   Dialog,
   DialogContent,
@@ -21,9 +18,7 @@ import {
   DialogTitle,
   DialogTrigger,
 } from "@/components/ui/dialog";
-
 import { Input } from "@/components/ui/input";
-
 import {
   Select,
   SelectContent,
@@ -38,9 +33,7 @@ interface FuelDialogProps {
 
 const FuelDialog = ({ entry }: FuelDialogProps) => {
   const { addFuelEntry, updateFuelEntry } = useFuel();
-
   const [open, setOpen] = useState(false);
-
   const isEditMode = Boolean(entry);
 
   const form = useForm<FuelFormValues>({
@@ -63,15 +56,12 @@ const FuelDialog = ({ entry }: FuelDialogProps) => {
   });
 
   useEffect(() => {
-    if (!open) {
-      return;
-    }
+    if (!open) return;
 
     form.reset({
       date: entry?.date
         ? entry.date.slice(0, 10)
         : new Date().toISOString().slice(0, 10),
-
       liters: entry?.liters ?? 0,
       pricePerLiter: entry?.pricePerLiter ?? 0,
       mileage: entry?.mileage ?? 0,
@@ -109,6 +99,7 @@ const FuelDialog = ({ entry }: FuelDialogProps) => {
     setOpen(false);
     form.reset();
   };
+
   return (
     <Dialog open={open} onOpenChange={setOpen}>
       {isEditMode ? (
@@ -122,7 +113,7 @@ const FuelDialog = ({ entry }: FuelDialogProps) => {
         </DialogTrigger>
       )}
 
-      <DialogContent>
+      <DialogContent className="sm:max-w-md">
         <DialogHeader>
           <DialogTitle>
             {isEditMode ? "Edit fuel entry" : "Add fuel entry"}
@@ -130,114 +121,85 @@ const FuelDialog = ({ entry }: FuelDialogProps) => {
         </DialogHeader>
 
         <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-5">
-          {/* DATE */}
-
           <div className="space-y-2">
             <label htmlFor="fuel-date" className="text-sm font-medium">
               Date
             </label>
-
             <Input id="fuel-date" type="date" {...form.register("date")} />
-
             {form.formState.errors.date && (
-              <p className="text-sm text-destructive">
+              <p className="text-sm text-destructive" role="alert">
                 {form.formState.errors.date.message}
               </p>
             )}
           </div>
 
-          {/* LITERS */}
+          <div className="grid gap-4 sm:grid-cols-2">
+            <div className="space-y-2">
+              <label htmlFor="fuel-liters" className="text-sm font-medium">
+                Liters
+              </label>
+              <Input
+                id="fuel-liters"
+                type="number"
+                step="0.01"
+                min="0"
+                {...form.register("liters", { valueAsNumber: true })}
+              />
+              {form.formState.errors.liters && (
+                <p className="text-sm text-destructive" role="alert">
+                  {form.formState.errors.liters.message}
+                </p>
+              )}
+            </div>
 
-          <div className="space-y-2">
-            <label htmlFor="fuel-liters" className="text-sm font-medium">
-              Liters
-            </label>
-
-            <Input
-              id="fuel-liters"
-              type="number"
-              step="0.01"
-              min="0"
-              {...form.register("liters", {
-                valueAsNumber: true,
-              })}
-            />
-
-            {form.formState.errors.liters && (
-              <p className="text-sm text-destructive">
-                {form.formState.errors.liters.message}
-              </p>
-            )}
+            <div className="space-y-2">
+              <label htmlFor="fuel-price" className="text-sm font-medium">
+                Price per liter
+              </label>
+              <Input
+                id="fuel-price"
+                type="number"
+                step="0.01"
+                min="0"
+                {...form.register("pricePerLiter", { valueAsNumber: true })}
+              />
+              {form.formState.errors.pricePerLiter && (
+                <p className="text-sm text-destructive" role="alert">
+                  {form.formState.errors.pricePerLiter.message}
+                </p>
+              )}
+            </div>
           </div>
-
-          {/* PRICE */}
-
-          <div className="space-y-2">
-            <label htmlFor="fuel-price" className="text-sm font-medium">
-              Price per liter
-            </label>
-
-            <Input
-              id="fuel-price"
-              type="number"
-              step="0.01"
-              min="0"
-              {...form.register("pricePerLiter", {
-                valueAsNumber: true,
-              })}
-            />
-
-            {form.formState.errors.pricePerLiter && (
-              <p className="text-sm text-destructive">
-                {form.formState.errors.pricePerLiter.message}
-              </p>
-            )}
-          </div>
-
-          {/* MILEAGE */}
 
           <div className="space-y-2">
             <label htmlFor="fuel-mileage" className="text-sm font-medium">
               Mileage
             </label>
-
             <Input
               id="fuel-mileage"
               type="number"
               min="0"
-              {...form.register("mileage", {
-                valueAsNumber: true,
-              })}
+              {...form.register("mileage", { valueAsNumber: true })}
             />
-
             {form.formState.errors.mileage && (
-              <p className="text-sm text-destructive">
+              <p className="text-sm text-destructive" role="alert">
                 {form.formState.errors.mileage.message}
               </p>
             )}
           </div>
 
-          {/* FUEL TYPE */}
-
           <div className="space-y-2">
             <label className="text-sm font-medium">Fuel type</label>
-
             <Select
               value={fuelType}
               onValueChange={(value) => {
-                if (value === null) {
-                  return;
-                }
-
-                form.setValue("fuelType", value, {
-                  shouldValidate: true,
-                });
+                if (value === null) return;
+                form.setValue("fuelType", value, { shouldValidate: true });
               }}
             >
               <SelectTrigger>
                 <SelectValue placeholder="Select fuel type" />
               </SelectTrigger>
-
               <SelectContent>
                 <SelectItem value="AI-92">AI-92</SelectItem>
                 <SelectItem value="AI-95">AI-95</SelectItem>
@@ -245,37 +207,30 @@ const FuelDialog = ({ entry }: FuelDialogProps) => {
                 <SelectItem value="AI-100">AI-100</SelectItem>
               </SelectContent>
             </Select>
-
             {form.formState.errors.fuelType && (
-              <p className="text-sm text-destructive">
+              <p className="text-sm text-destructive" role="alert">
                 {form.formState.errors.fuelType.message}
               </p>
             )}
           </div>
 
-          {/* NOTE */}
-
           <div className="space-y-2">
             <label htmlFor="fuel-note" className="text-sm font-medium">
               Note
             </label>
-
             <Input
               id="fuel-note"
               placeholder="Optional"
               {...form.register("note")}
             />
-
             {form.formState.errors.note && (
-              <p className="text-sm text-destructive">
+              <p className="text-sm text-destructive" role="alert">
                 {form.formState.errors.note.message}
               </p>
             )}
           </div>
 
-          {/* ACTIONS */}
-
-          <div className="flex justify-end gap-2">
+          <div className="flex justify-end gap-2 pt-2">
             <Button
               type="button"
               variant="outline"
@@ -283,7 +238,6 @@ const FuelDialog = ({ entry }: FuelDialogProps) => {
             >
               Cancel
             </Button>
-
             <Button type="submit">
               {isEditMode ? "Save changes" : "Add fuel"}
             </Button>

@@ -1,7 +1,9 @@
 "use client";
 
 import { format } from "date-fns";
-import { ChevronRight } from "lucide-react";
+import { Wrench } from "lucide-react";
+import { motion } from "motion/react";
+
 import { useService } from "@/contexts/service-context";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import ServiceDialog from "@/components/service/service-dialog";
@@ -25,19 +27,21 @@ const ServiceHistory = () => {
 
   if (sortedEntries.length === 0) {
     return (
-      <Card>
-        <CardHeader>
-          <CardTitle>Service history</CardTitle>
+      <Card className="border-border/60">
+        <CardHeader className="pb-3">
+          <CardTitle className="text-base font-semibold">
+            Service history
+          </CardTitle>
         </CardHeader>
-
         <CardContent>
-          <div className="rounded-lg border border-dashed p-8 text-center">
-            <p className="text-sm text-muted-foreground">
-              No service records yet.
-            </p>
-
-            <p className="mt-1 text-xs text-muted-foreground">
-              Add your first maintenance record.
+          <div className="flex min-h-55 flex-col items-center justify-center rounded-xl border border-dashed border-border/60 text-center">
+            <div className="mb-3 flex size-12 items-center justify-center rounded-full bg-muted/50">
+              <Wrench className="size-5 text-muted-foreground" />
+            </div>
+            <p className="font-medium">No service records yet</p>
+            <p className="mt-1 max-w-sm text-sm text-muted-foreground">
+              Add your first maintenance record to start tracking service
+              history.
             </p>
           </div>
         </CardContent>
@@ -46,74 +50,104 @@ const ServiceHistory = () => {
   }
 
   return (
-    <Card>
-      <CardHeader>
-        <CardTitle>Service history</CardTitle>
-
+    <Card className="border-border/60">
+      <CardHeader className="pb-2">
+        <CardTitle className="text-base font-semibold">
+          Service history
+        </CardTitle>
         <p className="text-sm text-muted-foreground">
           {serviceEntries.length}{" "}
-          {serviceEntries.length === 1 ? "service" : "services"} recorded
+          {serviceEntries.length === 1 ? "record" : "records"}
         </p>
       </CardHeader>
 
-      <CardContent className="space-y-3">
-        {sortedEntries.map((entry) => (
-          <div
-            key={entry.id}
-            className="group rounded-xl border p-4 transition-colors hover:bg-muted/40"
-          >
-            <div className="flex flex-col gap-4 sm:flex-row sm:items-start sm:justify-between">
-              <div className="min-w-0 space-y-3">
-                <div className="flex flex-wrap items-center gap-2">
-                  <p className="font-semibold">{entry.title}</p>
-                </div>
+      <CardContent className="pt-6">
+        <div className="relative space-y-0">
+          {/* Vertical line */}
+          <div className="absolute left-3.75 top-2 bottom-2 w-px bg-border/70" />
 
-                <div className="flex flex-wrap gap-x-5 gap-y-1 text-sm text-muted-foreground">
-                  <span>{format(new Date(entry.date), "dd.MM.yyyy")}</span>
+          {sortedEntries.map((entry, index) => (
+            <motion.div
+              key={entry.id}
+              initial={{ opacity: 0, x: -8 }}
+              animate={{ opacity: 1, x: 0 }}
+              transition={{
+                duration: 0.3,
+                delay: index * 0.04,
+                ease: "easeOut",
+              }}
+              className="group relative flex gap-5 pb-8 last:pb-0"
+            >
+              <div className="relative z-10 mt-1.5 flex size-7.75 shrink-0 items-center justify-center">
+                <div className="size-3 rounded-full border-2 border-primary bg-background ring-4 ring-background transition-colors group-hover:bg-primary" />
+              </div>
 
-                  <span>{formatNumber(entry.mileage)} km</span>
+              <div className="min-w-0 flex-1">
+                <div className="flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between">
+                  <div className="space-y-1.5">
+                    <div className="flex flex-wrap items-center gap-2">
+                      <h3 className="text-[15px] font-semibold tracking-tight">
+                        {entry.title}
+                      </h3>
+                      {entry.serviceName && (
+                        <span className="rounded-md bg-muted px-2 py-0.5 text-xs text-muted-foreground">
+                          {entry.serviceName}
+                        </span>
+                      )}
+                    </div>
 
-                  {entry.serviceName && <span>{entry.serviceName}</span>}
+                    <div className="flex flex-wrap items-center gap-x-3 text-sm text-muted-foreground">
+                      <time dateTime={entry.date}>
+                        {format(new Date(entry.date), "d MMMM yyyy")}
+                      </time>
+                      <span>•</span>
+                      <span className="tabular-nums">
+                        {formatNumber(entry.mileage)} km
+                      </span>
+                    </div>
+                  </div>
+
+                  <div className="flex items-center gap-3">
+                    <p className="text-base font-semibold tabular-nums">
+                      {formatMoney(entry.cost)}
+                    </p>
+
+                    <div className="flex items-center gap-0.5 opacity-0 transition-opacity group-hover:opacity-100">
+                      <ServiceDialog entry={entry} />
+                      <ConfirmDialog
+                        title="Delete service entry?"
+                        description="This action cannot be undone."
+                        onConfirm={() => {
+                          deleteServiceEntry(entry.id);
+                          toast.success("Service entry deleted");
+                        }}
+                      />
+                    </div>
+                  </div>
                 </div>
 
                 {entry.works.length > 0 && (
-                  <ul className="space-y-1 text-sm text-muted-foreground">
-                    {entry.works.map((work, index) => (
-                      <li key={`${entry.id}-${index}`}>• {work}</li>
+                  <div className="mt-3 flex flex-wrap gap-1.5">
+                    {entry.works.map((work, i) => (
+                      <span
+                        key={`${entry.id}-${i}`}
+                        className="rounded-full border border-border/60 bg-muted/40 px-2.5 py-0.5 text-xs text-muted-foreground"
+                      >
+                        {work}
+                      </span>
                     ))}
-                  </ul>
+                  </div>
                 )}
 
                 {entry.comment && (
-                  <p className="text-sm text-muted-foreground">
+                  <p className="mt-2.5 text-sm leading-relaxed text-muted-foreground">
                     {entry.comment}
                   </p>
                 )}
               </div>
-
-              <div className="flex items-center justify-between gap-4 sm:flex-col sm:items-end">
-                <p className="text-lg font-semibold">
-                  {formatMoney(entry.cost)}
-                </p>
-
-                <div className="flex items-center gap-1">
-                  <ServiceDialog entry={entry} />
-
-                  <ConfirmDialog
-                    title="Delete service entry?"
-                    description="This action cannot be undone."
-                    onConfirm={() => {
-                      deleteServiceEntry(entry.id);
-                      toast.success("Service entry deleted");
-                    }}
-                  />
-
-                  <ChevronRight className="hidden size-4 text-muted-foreground sm:block" />
-                </div>
-              </div>
-            </div>
-          </div>
-        ))}
+            </motion.div>
+          ))}
+        </div>
       </CardContent>
     </Card>
   );

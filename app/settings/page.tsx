@@ -5,10 +5,12 @@ const SettingsPage = () => {
   return (
     <main className="mx-auto w-full max-w-5xl space-y-6 p-4 sm:p-6">
       <div>
-        <h1 className="text-2xl font-semibold tracking-tight">Settings</h1>
-
-        <p className="mt-1 text-sm text-muted-foreground">
-          Manage appearance, units and application data.
+        <p className="text-sm font-medium text-muted-foreground">
+          App settings
+        </p>
+        <h1 className="text-3xl font-semibold tracking-tight">Settings</h1>
+        <p className="text-muted-foreground">
+          Manage appearance and application data.
         </p>
       </div>
 

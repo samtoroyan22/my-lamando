@@ -2,20 +2,17 @@
 
 import { useEffect, useState } from "react";
 import { Plus, Pencil } from "lucide-react";
-
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useForm, useWatch } from "react-hook-form";
 
 import { useExpense } from "@/contexts/expense-context";
 import type { Expense } from "@/types/expense";
-
 import {
   expenseSchema,
   type ExpenseFormValues,
 } from "@/schemas/expense-schema";
 
 import { Button } from "@/components/ui/button";
-
 import {
   Dialog,
   DialogContent,
@@ -23,9 +20,7 @@ import {
   DialogTitle,
   DialogTrigger,
 } from "@/components/ui/dialog";
-
 import { Input } from "@/components/ui/input";
-
 import {
   Select,
   SelectContent,
@@ -41,14 +36,11 @@ interface ExpenseDialogProps {
 
 const ExpenseDialog = ({ entry }: ExpenseDialogProps) => {
   const { addExpenseEntry, updateExpenseEntry } = useExpense();
-
   const [open, setOpen] = useState(false);
-
   const isEditMode = Boolean(entry);
 
   const form = useForm<ExpenseFormValues>({
     resolver: zodResolver(expenseSchema),
-
     defaultValues: {
       date: entry?.date
         ? entry.date.slice(0, 10)
@@ -67,9 +59,7 @@ const ExpenseDialog = ({ entry }: ExpenseDialogProps) => {
   });
 
   useEffect(() => {
-    if (!open) {
-      return;
-    }
+    if (!open) return;
 
     form.reset({
       date: entry?.date
@@ -121,7 +111,7 @@ const ExpenseDialog = ({ entry }: ExpenseDialogProps) => {
         </DialogTrigger>
       )}
 
-      <DialogContent>
+      <DialogContent className="sm:max-w-md">
         <DialogHeader>
           <DialogTitle>
             {isEditMode ? "Edit expense" : "Add expense"}
@@ -129,157 +119,117 @@ const ExpenseDialog = ({ entry }: ExpenseDialogProps) => {
         </DialogHeader>
 
         <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-5">
-          {/* DATE */}
-
           <div className="space-y-2">
             <label htmlFor="expense-date" className="text-sm font-medium">
               Date
             </label>
-
             <Input id="expense-date" type="date" {...form.register("date")} />
-
             {form.formState.errors.date && (
-              <p className="text-sm text-destructive">
+              <p className="text-sm text-destructive" role="alert">
                 {form.formState.errors.date.message}
               </p>
             )}
           </div>
 
-          {/* CATEGORY */}
-
           <div className="space-y-2">
             <label className="text-sm font-medium">Category</label>
-
             <Select
               value={category}
               onValueChange={(value) => {
-                if (value === null) {
-                  return;
-                }
-
-                form.setValue("category", value, {
-                  shouldValidate: true,
-                });
+                if (value === null) return;
+                form.setValue("category", value, { shouldValidate: true });
               }}
             >
               <SelectTrigger>
                 <SelectValue placeholder="Select category" />
               </SelectTrigger>
-
               <SelectContent>
                 <SelectItem value="Maintenance">Maintenance</SelectItem>
-
                 <SelectItem value="Fuel">Fuel</SelectItem>
-
                 <SelectItem value="Insurance">Insurance</SelectItem>
-
                 <SelectItem value="Car wash">Car wash</SelectItem>
-
                 <SelectItem value="Parts">Parts</SelectItem>
-
                 <SelectItem value="Taxes">Taxes</SelectItem>
-
                 <SelectItem value="Other">Other</SelectItem>
               </SelectContent>
             </Select>
-
             {form.formState.errors.category && (
-              <p className="text-sm text-destructive">
+              <p className="text-sm text-destructive" role="alert">
                 {form.formState.errors.category.message}
               </p>
             )}
           </div>
 
-          {/* TITLE */}
-
           <div className="space-y-2">
             <label htmlFor="expense-title" className="text-sm font-medium">
               Title
             </label>
-
             <Input
               id="expense-title"
               placeholder="Oil change"
               {...form.register("title")}
             />
-
             {form.formState.errors.title && (
-              <p className="text-sm text-destructive">
+              <p className="text-sm text-destructive" role="alert">
                 {form.formState.errors.title.message}
               </p>
             )}
           </div>
 
-          {/* AMOUNT */}
+          <div className="grid gap-4 sm:grid-cols-2">
+            <div className="space-y-2">
+              <label htmlFor="expense-amount" className="text-sm font-medium">
+                Amount
+              </label>
+              <Input
+                id="expense-amount"
+                type="number"
+                step="0.01"
+                min="0"
+                {...form.register("amount", { valueAsNumber: true })}
+              />
+              {form.formState.errors.amount && (
+                <p className="text-sm text-destructive" role="alert">
+                  {form.formState.errors.amount.message}
+                </p>
+              )}
+            </div>
 
-          <div className="space-y-2">
-            <label htmlFor="expense-amount" className="text-sm font-medium">
-              Amount
-            </label>
-
-            <Input
-              id="expense-amount"
-              type="number"
-              step="0.01"
-              min="0"
-              {...form.register("amount", {
-                valueAsNumber: true,
-              })}
-            />
-
-            {form.formState.errors.amount && (
-              <p className="text-sm text-destructive">
-                {form.formState.errors.amount.message}
-              </p>
-            )}
+            <div className="space-y-2">
+              <label htmlFor="expense-mileage" className="text-sm font-medium">
+                Mileage
+              </label>
+              <Input
+                id="expense-mileage"
+                type="number"
+                min="0"
+                {...form.register("mileage", { valueAsNumber: true })}
+              />
+              {form.formState.errors.mileage && (
+                <p className="text-sm text-destructive" role="alert">
+                  {form.formState.errors.mileage.message}
+                </p>
+              )}
+            </div>
           </div>
-
-          {/* MILEAGE */}
-
-          <div className="space-y-2">
-            <label htmlFor="expense-mileage" className="text-sm font-medium">
-              Mileage
-            </label>
-
-            <Input
-              id="expense-mileage"
-              type="number"
-              min="0"
-              {...form.register("mileage", {
-                valueAsNumber: true,
-              })}
-            />
-
-            {form.formState.errors.mileage && (
-              <p className="text-sm text-destructive">
-                {form.formState.errors.mileage.message}
-              </p>
-            )}
-          </div>
-
-          {/* NOTE */}
 
           <div className="space-y-2">
             <label htmlFor="expense-note" className="text-sm font-medium">
               Note
             </label>
-
             <Input
               id="expense-note"
               placeholder="Optional"
               {...form.register("note")}
             />
-
             {form.formState.errors.note && (
-              <p className="text-sm text-destructive">
+              <p className="text-sm text-destructive" role="alert">
                 {form.formState.errors.note.message}
               </p>
             )}
           </div>
 
-          {/* ACTIONS */}
-
-          <div className="flex justify-end gap-2">
+          <div className="flex justify-end gap-2 pt-2">
             <Button
               type="button"
               variant="outline"
@@ -287,7 +237,6 @@ const ExpenseDialog = ({ entry }: ExpenseDialogProps) => {
             >
               Cancel
             </Button>
-
             <Button type="submit">
               {isEditMode ? "Save changes" : "Add expense"}
             </Button>

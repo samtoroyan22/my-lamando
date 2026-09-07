@@ -1,18 +1,27 @@
 "use client";
 
 import { Monitor, Moon, Sun } from "lucide-react";
+import { useSyncExternalStore } from "react";
 import { useTheme } from "next-themes";
 
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 
+const emptySubscribe = () => () => {};
+
 const AppearanceSettings = () => {
-  const { setTheme } = useTheme();
+  const { theme, setTheme } = useTheme();
+
+  const mounted = useSyncExternalStore(
+    emptySubscribe,
+    () => true,
+    () => false,
+  );
 
   return (
-    <Card>
-      <CardHeader>
-        <CardTitle>Appearance</CardTitle>
+    <Card className="border-border/60">
+      <CardHeader className="pb-3">
+        <CardTitle className="text-base font-semibold">Appearance</CardTitle>
 
         <p className="text-sm text-muted-foreground">
           Choose how My Lamando looks.
@@ -23,34 +32,34 @@ const AppearanceSettings = () => {
         <div className="flex flex-wrap gap-2">
           <Button
             type="button"
-            variant="outline"
+            variant={mounted && theme === "light" ? "default" : "outline"}
             size="sm"
             onClick={() => setTheme("light")}
-            className="cursor-pointer"
+            className="gap-2"
           >
-            <Sun className="size-4" />
+            <Sun className="size-4" aria-hidden="true" />
             Light
           </Button>
 
           <Button
             type="button"
-            variant="outline"
+            variant={mounted && theme === "dark" ? "default" : "outline"}
             size="sm"
             onClick={() => setTheme("dark")}
-            className="cursor-pointer"
+            className="gap-2"
           >
-            <Moon className="size-4" />
+            <Moon className="size-4" aria-hidden="true" />
             Dark
           </Button>
 
           <Button
             type="button"
-            variant="outline"
+            variant={mounted && theme === "system" ? "default" : "outline"}
             size="sm"
             onClick={() => setTheme("system")}
-            className="cursor-pointer"
+            className="gap-2"
           >
-            <Monitor className="size-4" />
+            <Monitor className="size-4" aria-hidden="true" />
             System
           </Button>
         </div>

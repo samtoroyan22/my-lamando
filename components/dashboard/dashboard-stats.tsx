@@ -1,7 +1,5 @@
 "use client";
 
-import { Fuel, Gauge, Wallet, Wrench } from "lucide-react";
-
 import { useCar } from "@/contexts/car-context";
 import { useFuel } from "@/contexts/fuel-context";
 import { useExpense } from "@/contexts/expense-context";
@@ -16,6 +14,10 @@ import {
 } from "@/lib/calculations/dashboard";
 
 import { Card, CardContent } from "@/components/ui/card";
+import {
+  DASHBOARD_STATS_CONFIG,
+  type DashboardStatKey,
+} from "./dashboard-stats-config";
 
 const formatNumber = (value: number) =>
   new Intl.NumberFormat("ru-RU").format(value);
@@ -32,79 +34,66 @@ const DashboardStats = () => {
   const { serviceEntries } = useService();
 
   const averageConsumption = getAverageFuelConsumption(fuelEntries);
-
   const totalFuelCost = getTotalFuelCost(fuelEntries);
   const totalExpenses = getTotalExpenses(expenseEntries);
-
   const totalCost = getTotalTrackedCost(
     fuelEntries,
     expenseEntries,
     serviceEntries,
   );
-
   const costPerKm = getCostPerKm(totalCost, car.mileage);
 
-  const stats = [
-    {
-      title: "Current mileage",
-      value: formatNumber(car.mileage),
-      unit: "km",
-      icon: Gauge,
-    },
-    {
-      title: "Average consumption",
-      value:
-        averageConsumption !== undefined ? averageConsumption.toFixed(1) : "—",
-      unit: averageConsumption !== undefined ? "L/100 km" : "",
-      icon: Fuel,
-    },
-    {
-      title: "Total expenses",
-      value: formatMoney(totalExpenses),
-      unit: "",
-      icon: Wallet,
-    },
-    {
-      title: "Service & fuel",
-      value: formatMoney(
-        totalFuelCost +
-          serviceEntries.reduce((sum, entry) => sum + entry.cost, 0),
-      ),
-      unit: "",
-      icon: Wrench,
-    },
-    {
-      title: "Cost per km",
-      value: costPerKm !== undefined ? costPerKm.toFixed(2) : "—",
-      unit: costPerKm !== undefined ? "₽/km" : "",
-      icon: Wallet,
-    },
-  ];
+  const values: Record<DashboardStatKey, string> = {
+    mileage: formatNumber(car.mileage),
+    consumption:
+      averageConsumption !== undefined ? averageConsumption.toFixed(1) : "—",
+    expenses: formatMoney(totalExpenses),
+    serviceFuel: formatMoney(
+      totalFuelCost +
+        serviceEntries.reduce((sum, entry) => sum + entry.cost, 0),
+    ),
+    costPerKm: costPerKm !== undefined ? costPerKm.toFixed(2) : "—",
+  };
+
+  const units: Record<DashboardStatKey, string> = {
+    mileage: "km",
+    consumption: averageConsumption !== undefined ? "L/100 km" : "",
+    expenses: "",
+    serviceFuel: "",
+    costPerKm: costPerKm !== undefined ? "₽/km" : "",
+  };
 
   return (
     <div className="grid gap-4 sm:grid-cols-2 xl:grid-cols-5">
-      {stats.map((stat) => {
+      {DASHBOARD_STATS_CONFIG.map((stat) => {
         const Icon = stat.icon;
 
         return (
-          <Card key={stat.title}>
+          <Card
+            key={stat.key}
+            className="border-border/50 bg-card/80 transition-colors hover:border-border"
+          >
             <CardContent>
               <div className="flex items-center justify-between">
                 <p className="text-sm font-medium text-muted-foreground">
                   {stat.title}
                 </p>
 
-                <Icon className="size-4 text-muted-foreground" />
+                <div
+                  className={`flex size-9 shrink-0 items-center justify-center rounded-full ${stat.iconClass}`}
+                >
+                  <Icon className="size-4" aria-hidden="true" />
+                </div>
               </div>
 
               <div className="mt-4">
-                <p className="text-2xl font-semibold tracking-tight">
-                  {stat.value}
+                <p className="text-2xl font-semibold tracking-tight tabular-nums">
+                  {values[stat.key]}
                 </p>
 
-                {stat.unit && (
+                {units[stat.key] && (
                   <p className="mt-1 text-sm text-muted-foreground">
-                    {stat.unit}
+                    {units[stat.key]}
                   </p>
                 )}
               </div>

@@ -10,9 +10,12 @@ export type ServiceRecord = {
   attachments?: string[];
 };
 
+export type MaintenanceType = "replace" | "inspect" | "time-based";
+
 export type MaintenanceItem = {
   id: string;
   name: string;
+  maintenanceType: MaintenanceType;
   intervalKm?: number;
   intervalMonths?: number;
   lastServiceMileage?: number;

@@ -5,59 +5,82 @@ export type MaintenanceStatus = "Normal" | "Soon" | "Due" | "Overdue";
 export interface MaintenanceItemWithStatus extends MaintenanceItem {
   status: MaintenanceStatus;
   remainingKm?: number;
+  remainingDays?: number;
 }
 
 export const DEFAULT_MAINTENANCE_ITEMS: MaintenanceItem[] = [
   {
     id: "engine-oil",
     name: "Engine oil",
+    maintenanceType: "replace",
     intervalKm: 7500,
+    intervalMonths: 12,
   },
   {
     id: "oil-filter",
     name: "Oil filter",
+    maintenanceType: "replace",
     intervalKm: 7500,
+    intervalMonths: 12,
   },
   {
     id: "air-filter",
     name: "Air filter",
+    maintenanceType: "replace",
     intervalKm: 15000,
   },
   {
     id: "cabin-filter",
     name: "Cabin filter",
+    maintenanceType: "replace",
     intervalKm: 12000,
+    intervalMonths: 12,
   },
   {
     id: "spark-plugs",
     name: "Spark plugs",
-    intervalKm: 60000,
+    maintenanceType: "replace",
+    intervalKm: 30000,
   },
   {
     id: "dsg-service",
     name: "DSG service",
+    maintenanceType: "replace",
     intervalKm: 60000,
   },
   {
     id: "brake-fluid",
     name: "Brake fluid",
+    maintenanceType: "time-based",
     intervalMonths: 24,
   },
   {
     id: "coolant",
     name: "Coolant",
-    intervalKm: 120000,
+    maintenanceType: "time-based",
     intervalMonths: 60,
   },
   {
     id: "brake-pads",
     name: "Brake pads",
-    intervalKm: 30000,
+    maintenanceType: "inspect",
   },
   {
     id: "brake-discs",
     name: "Brake discs",
-    intervalKm: 60000,
+    maintenanceType: "inspect",
+  },
+  {
+    id: "timing-belt-inspection",
+    name: "Timing belt inspection",
+    maintenanceType: "inspect",
+    intervalKm: 90000,
+  },
+  {
+    id: "battery-check",
+    name: "Battery check",
+    maintenanceType: "inspect",
+    intervalMonths: 12,
   },
 ];
 
@@ -92,6 +115,27 @@ function findLastServiceForItem(
   )[0];
 }
 
+function addMonths(dateString: string, months: number): Date {
+  const date = new Date(dateString);
+  date.setMonth(date.getMonth() + months);
+  return date;
+}
+
+function getRemainingDays(
+  nextServiceDate: string | undefined,
+  currentDate: Date,
+): number | undefined {
+  if (!nextServiceDate) {
+    return undefined;
+  }
+
+  const nextDate = new Date(nextServiceDate);
+
+  return Math.ceil(
+    (nextDate.getTime() - currentDate.getTime()) / (1000 * 60 * 60 * 24),
+  );
+}
+
 export function buildMaintenanceSchedule(
   items: MaintenanceItem[],
   serviceEntries: ServiceRecord[],
@@ -103,22 +147,22 @@ export function buildMaintenanceSchedule(
       return item;
     }
 
+    const nextServiceMileage =
+      item.intervalKm !== undefined
+        ? lastService.mileage + item.intervalKm
+        : undefined;
+
+    const nextServiceDate =
+      item.intervalMonths !== undefined
+        ? addMonths(lastService.date, item.intervalMonths).toISOString()
+        : undefined;
+
     return {
       ...item,
       lastServiceMileage: lastService.mileage,
       lastServiceDate: lastService.date,
-
-      nextServiceMileage: item.intervalKm
-        ? lastService.mileage + item.intervalKm
-        : undefined,
-
-      nextServiceDate: item.intervalMonths
-        ? new Date(
-            new Date(lastService.date).setMonth(
-              new Date(lastService.date).getMonth() + item.intervalMonths,
-            ),
-          ).toISOString()
-        : undefined,
+      nextServiceMileage,
+      nextServiceDate,
     };
   });
 }
@@ -126,22 +170,38 @@ export function buildMaintenanceSchedule(
 export function getMaintenanceStatus(
   item: MaintenanceItem,
   currentMileage: number,
+  currentDate: Date = new Date(),
 ): MaintenanceStatus {
-  if (item.nextServiceMileage === undefined) {
+  const remainingKm =
+    item.nextServiceMileage !== undefined
+      ? item.nextServiceMileage - currentMileage
+      : undefined;
+
+  const remainingDays = getRemainingDays(item.nextServiceDate, currentDate);
+
+  if (remainingKm === undefined && remainingDays === undefined) {
     return "Normal";
   }
 
-  const remainingKm = item.nextServiceMileage - currentMileage;
+  const isOverdueByMileage = remainingKm !== undefined && remainingKm < 0;
+  const isOverdueByDate = remainingDays !== undefined && remainingDays < 0;
 
-  if (remainingKm < 0) {
+  if (isOverdueByMileage || isOverdueByDate) {
     return "Overdue";
   }
 
-  if (remainingKm === 0) {
+  const isDueByMileage = remainingKm === 0;
+  const isDueByDate = remainingDays === 0;
+
+  if (isDueByMileage || isDueByDate) {
     return "Due";
   }
 
-  if (remainingKm <= 2000) {
+  const isSoonByMileage = remainingKm !== undefined && remainingKm <= 2000;
+
+  const isSoonByDate = remainingDays !== undefined && remainingDays <= 30;
+
+  if (isSoonByMileage || isSoonByDate) {
     return "Soon";
   }
 
@@ -159,16 +219,23 @@ export function getRemainingKm(
   return item.nextServiceMileage - currentMileage;
 }
 
+export function getRemainingDaysForMaintenance(
+  item: MaintenanceItem,
+  currentDate: Date = new Date(),
+): number | undefined {
+  return getRemainingDays(item.nextServiceDate, currentDate);
+}
+
 export function prepareMaintenanceItem(
   item: MaintenanceItem,
   currentMileage: number,
+  currentDate: Date = new Date(),
 ): MaintenanceItemWithStatus {
   return {
     ...item,
-
-    status: getMaintenanceStatus(item, currentMileage),
-
+    status: getMaintenanceStatus(item, currentMileage, currentDate),
     remainingKm: getRemainingKm(item, currentMileage),
+    remainingDays: getRemainingDaysForMaintenance(item, currentDate),
   };
 }
 
@@ -176,10 +243,13 @@ export function getMaintenanceSchedule(
   items: MaintenanceItem[],
   serviceEntries: ServiceRecord[],
   currentMileage: number,
+  currentDate: Date = new Date(),
 ): MaintenanceItemWithStatus[] {
   const schedule = buildMaintenanceSchedule(items, serviceEntries);
 
-  return schedule.map((item) => prepareMaintenanceItem(item, currentMileage));
+  return schedule.map((item) =>
+    prepareMaintenanceItem(item, currentMileage, currentDate),
+  );
 }
 
 export function getLastService(
@@ -194,22 +264,58 @@ export function getLastService(
   )[0];
 }
 
+function getMaintenancePriority(item: MaintenanceItemWithStatus): number {
+  if (item.status === "Overdue") {
+    return 0;
+  }
+
+  if (item.status === "Due") {
+    return 1;
+  }
+
+  if (item.status === "Soon") {
+    return 2;
+  }
+
+  return 3;
+}
+
+function getMaintenanceDistance(item: MaintenanceItemWithStatus): number {
+  const mileageDistance = item.remainingKm ?? Infinity;
+  const timeDistance = item.remainingDays ?? Infinity;
+
+  return Math.min(mileageDistance, timeDistance);
+}
+
 export function getNextMaintenance(
   items: MaintenanceItem[],
   serviceEntries: ServiceRecord[],
   currentMileage: number,
+  currentDate: Date = new Date(),
 ): MaintenanceItemWithStatus | undefined {
   const schedule = getMaintenanceSchedule(
     items,
     serviceEntries,
     currentMileage,
+    currentDate,
   );
 
   return schedule
-    .filter((item) => item.remainingKm !== undefined)
-    .sort(
-      (a, b) => (a.remainingKm ?? Infinity) - (b.remainingKm ?? Infinity),
-    )[0];
+    .filter(
+      (item) =>
+        item.nextServiceMileage !== undefined ||
+        item.nextServiceDate !== undefined,
+    )
+    .sort((a, b) => {
+      const priorityDifference =
+        getMaintenancePriority(a) - getMaintenancePriority(b);
+
+      if (priorityDifference !== 0) {
+        return priorityDifference;
+      }
+
+      return getMaintenanceDistance(a) - getMaintenanceDistance(b);
+    })[0];
 }
 
 export function getServiceCount(serviceEntries: ServiceRecord[]): number {

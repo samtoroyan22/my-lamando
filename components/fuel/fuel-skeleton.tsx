@@ -21,7 +21,7 @@ const MetricCardSkeleton = () => (
       <SkeletonBlock className="size-4 shrink-0" />
       <SkeletonBlock className="h-4 w-32" />
     </div>
-    <SkeletonBlock className="mt-2 h-8 w-24" />
+    <SkeletonBlock className="mt-3 h-8 w-24" />
   </div>
 );
 

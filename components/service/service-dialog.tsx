@@ -2,22 +2,19 @@
 
 import { useEffect, useState } from "react";
 import { Pencil, Plus } from "lucide-react";
-
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useForm, useWatch } from "react-hook-form";
 
 import { useService } from "@/contexts/service-context";
 import type { ServiceRecord } from "@/types/service";
-
 import {
   serviceSchema,
   type ServiceFormValues,
 } from "@/schemas/service-schema";
-
 import { MAINTENANCE_WORKS } from "@/lib/constants/maintenance";
+import { useCar } from "@/contexts/car-context";
 
 import { Button } from "@/components/ui/button";
-
 import {
   Dialog,
   DialogContent,
@@ -25,11 +22,8 @@ import {
   DialogTitle,
   DialogTrigger,
 } from "@/components/ui/dialog";
-
 import { Input } from "@/components/ui/input";
-
 import MultiSelect from "@/components/ui/multi-select";
-import { useCar } from "@/contexts/car-context";
 import { toast } from "sonner";
 
 interface ServiceDialogProps {
@@ -39,9 +33,7 @@ interface ServiceDialogProps {
 const ServiceDialog = ({ entry }: ServiceDialogProps) => {
   const { addServiceEntry, updateServiceEntry } = useService();
   const { car } = useCar();
-
   const [open, setOpen] = useState(false);
-
   const isEditMode = Boolean(entry);
 
   const form = useForm<ServiceFormValues>({
@@ -65,9 +57,7 @@ const ServiceDialog = ({ entry }: ServiceDialogProps) => {
   });
 
   useEffect(() => {
-    if (!open) {
-      return;
-    }
+    if (!open) return;
 
     form.reset({
       date: entry?.date
@@ -129,70 +119,55 @@ const ServiceDialog = ({ entry }: ServiceDialogProps) => {
         </DialogHeader>
 
         <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-5">
-          {/* DATE */}
+          <div className="grid gap-4 sm:grid-cols-2">
+            <div className="space-y-2">
+              <label htmlFor="service-date" className="text-sm font-medium">
+                Date
+              </label>
+              <Input id="service-date" type="date" {...form.register("date")} />
+              {form.formState.errors.date && (
+                <p className="text-sm text-destructive" role="alert">
+                  {form.formState.errors.date.message}
+                </p>
+              )}
+            </div>
 
-          <div className="space-y-2">
-            <label htmlFor="service-date" className="text-sm font-medium">
-              Date
-            </label>
-
-            <Input id="service-date" type="date" {...form.register("date")} />
-
-            {form.formState.errors.date && (
-              <p className="text-sm text-destructive">
-                {form.formState.errors.date.message}
-              </p>
-            )}
+            <div className="space-y-2">
+              <label htmlFor="service-mileage" className="text-sm font-medium">
+                Mileage
+              </label>
+              <Input
+                id="service-mileage"
+                type="number"
+                min="0"
+                {...form.register("mileage", { valueAsNumber: true })}
+              />
+              {form.formState.errors.mileage && (
+                <p className="text-sm text-destructive" role="alert">
+                  {form.formState.errors.mileage.message}
+                </p>
+              )}
+            </div>
           </div>
-
-          {/* MILEAGE */}
-
-          <div className="space-y-2">
-            <label htmlFor="service-mileage" className="text-sm font-medium">
-              Mileage
-            </label>
-
-            <Input
-              id="service-mileage"
-              type="number"
-              min="0"
-              {...form.register("mileage", {
-                valueAsNumber: true,
-              })}
-            />
-
-            {form.formState.errors.mileage && (
-              <p className="text-sm text-destructive">
-                {form.formState.errors.mileage.message}
-              </p>
-            )}
-          </div>
-
-          {/* TITLE */}
 
           <div className="space-y-2">
             <label htmlFor="service-title" className="text-sm font-medium">
               Service name
             </label>
-
             <Input
               id="service-title"
-              placeholder="e.g. ТО №1"
+              placeholder="e.g. TO #1"
               {...form.register("title")}
             />
-
             {form.formState.errors.title && (
-              <p className="text-sm text-destructive">
+              <p className="text-sm text-destructive" role="alert">
                 {form.formState.errors.title.message}
               </p>
             )}
           </div>
 
-          {/* COMPLETED WORKS */}
-
           <div className="space-y-2">
             <label className="text-sm font-medium">Completed works</label>
-
             <MultiSelect
               options={MAINTENANCE_WORKS}
               value={works ?? []}
@@ -204,84 +179,68 @@ const ServiceDialog = ({ entry }: ServiceDialogProps) => {
               }}
               placeholder="Select completed works..."
             />
-
             {form.formState.errors.works && (
-              <p className="text-sm text-destructive">
+              <p className="text-sm text-destructive" role="alert">
                 {form.formState.errors.works.message}
               </p>
             )}
-
             <p className="text-xs text-muted-foreground">
               Select all works completed during this service.
             </p>
           </div>
 
-          {/* COST */}
+          <div className="grid gap-4 sm:grid-cols-2">
+            <div className="space-y-2">
+              <label htmlFor="service-cost" className="text-sm font-medium">
+                Cost
+              </label>
+              <Input
+                id="service-cost"
+                type="number"
+                min="0"
+                step="0.01"
+                placeholder="0"
+                {...form.register("cost", { valueAsNumber: true })}
+              />
+              {form.formState.errors.cost && (
+                <p className="text-sm text-destructive" role="alert">
+                  {form.formState.errors.cost.message}
+                </p>
+              )}
+            </div>
 
-          <div className="space-y-2">
-            <label htmlFor="service-cost" className="text-sm font-medium">
-              Cost
-            </label>
-
-            <Input
-              id="service-cost"
-              type="number"
-              min="0"
-              step="0.01"
-              placeholder="0"
-              {...form.register("cost", {
-                valueAsNumber: true,
-              })}
-            />
-
-            {form.formState.errors.cost && (
-              <p className="text-sm text-destructive">
-                {form.formState.errors.cost.message}
-              </p>
-            )}
+            <div className="space-y-2">
+              <label htmlFor="service-company" className="text-sm font-medium">
+                Service center
+              </label>
+              <Input
+                id="service-company"
+                placeholder="e.g. Volkswagen Service"
+                {...form.register("serviceName")}
+              />
+              {form.formState.errors.serviceName && (
+                <p className="text-sm text-destructive" role="alert">
+                  {form.formState.errors.serviceName.message}
+                </p>
+              )}
+            </div>
           </div>
-
-          {/* SERVICE NAME */}
-
-          <div className="space-y-2">
-            <label htmlFor="service-company" className="text-sm font-medium">
-              Service center
-            </label>
-
-            <Input
-              id="service-company"
-              placeholder="e.g. Volkswagen Service"
-              {...form.register("serviceName")}
-            />
-
-            {form.formState.errors.serviceName && (
-              <p className="text-sm text-destructive">
-                {form.formState.errors.serviceName.message}
-              </p>
-            )}
-          </div>
-
-          {/* COMMENT */}
 
           <div className="space-y-2">
             <label htmlFor="service-comment" className="text-sm font-medium">
               Comment
             </label>
-
             <Input
               id="service-comment"
               placeholder="Optional"
               {...form.register("comment")}
             />
-
             {form.formState.errors.comment && (
-              <p className="text-sm text-destructive">
+              <p className="text-sm text-destructive" role="alert">
                 {form.formState.errors.comment.message}
               </p>
             )}
           </div>
-
-          {/* ACTIONS */}
 
           <div className="flex justify-end gap-2 pt-2">
             <Button
@@ -291,7 +250,6 @@ const ServiceDialog = ({ entry }: ServiceDialogProps) => {
             >
               Cancel
             </Button>
-
             <Button type="submit">
               {isEditMode ? "Save changes" : "Add service"}
             </Button>

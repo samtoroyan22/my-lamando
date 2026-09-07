@@ -1,11 +1,13 @@
 "use client";
 
 import { useState } from "react";
+import { format } from "date-fns";
 import {
   CalendarClock,
   ChevronLeft,
   ChevronRight,
   Gauge,
+  Hash,
   History,
   Wallet,
 } from "lucide-react";
@@ -33,12 +35,14 @@ const formatMoney = (value: number) =>
     maximumFractionDigits: 0,
   }).format(value)} ₽`;
 
+const getDistance = (item: MaintenanceItemWithStatus) =>
+  Math.min(item.remainingKm ?? Infinity, item.remainingDays ?? Infinity);
+
 const ServiceOverview = () => {
   const { car } = useCar();
   const { serviceEntries } = useService();
 
   const currentMileage = car.mileage;
-
   const lastService = getLastService(serviceEntries);
 
   const maintenanceSchedule = getMaintenanceSchedule(
@@ -47,25 +51,20 @@ const ServiceOverview = () => {
     currentMileage,
   );
 
-  const nextMaintenanceDistance = maintenanceSchedule
-    .filter((item) => item.remainingKm !== undefined)
-    .reduce<number | undefined>((closest, item) => {
-      if (item.remainingKm === undefined) {
-        return closest;
-      }
+  const sortedUpcoming = [...maintenanceSchedule]
+    .filter(
+      (item) =>
+        item.nextServiceMileage !== undefined ||
+        item.nextServiceDate !== undefined,
+    )
+    .sort((a, b) => getDistance(a) - getDistance(b));
 
-      if (closest === undefined) {
-        return item.remainingKm;
-      }
-
-      return Math.min(closest, item.remainingKm);
-    }, undefined);
+  const closestDistance =
+    sortedUpcoming.length > 0 ? getDistance(sortedUpcoming[0]) : undefined;
 
   const nextMaintenances: MaintenanceItemWithStatus[] =
-    nextMaintenanceDistance !== undefined
-      ? maintenanceSchedule.filter(
-          (item) => item.remainingKm === nextMaintenanceDistance,
-        )
+    closestDistance !== undefined
+      ? sortedUpcoming.filter((item) => getDistance(item) === closestDistance)
       : [];
 
   const [nextMaintenanceIndex, setNextMaintenanceIndex] = useState(0);
@@ -76,53 +75,47 @@ const ServiceOverview = () => {
       : 0;
 
   const currentNextMaintenance = nextMaintenances[safeIndex];
-
   const serviceCount = getServiceCount(serviceEntries);
-
   const totalCost = getTotalServiceCost(serviceEntries);
 
   const remainingKm = currentNextMaintenance?.remainingKm;
+  const remainingDays = currentNextMaintenance?.remainingDays;
+  const isOverdue =
+    (remainingKm !== undefined && remainingKm < 0) ||
+    (remainingDays !== undefined && remainingDays < 0);
 
   const canNavigate = nextMaintenances.length > 1;
 
   const showPreviousMaintenance = () => {
-    if (nextMaintenances.length <= 1) {
-      return;
-    }
-
-    setNextMaintenanceIndex((currentIndex) =>
-      currentIndex === 0 ? nextMaintenances.length - 1 : currentIndex - 1,
+    if (nextMaintenances.length <= 1) return;
+    setNextMaintenanceIndex((i) =>
+      i === 0 ? nextMaintenances.length - 1 : i - 1,
     );
   };
 
   const showNextMaintenance = () => {
-    if (nextMaintenances.length <= 1) {
-      return;
-    }
-
-    setNextMaintenanceIndex((currentIndex) =>
-      currentIndex === nextMaintenances.length - 1 ? 0 : currentIndex + 1,
+    if (nextMaintenances.length <= 1) return;
+    setNextMaintenanceIndex((i) =>
+      i === nextMaintenances.length - 1 ? 0 : i + 1,
     );
   };
 
   return (
     <div className="grid gap-4 sm:grid-cols-2 xl:grid-cols-5">
-      {/* LAST SERVICE */}
-
+      {/* Last service */}
       <Card>
         <CardHeader className="flex flex-row items-center justify-between space-y-0">
           <CardTitle className="text-sm font-medium text-muted-foreground">
             Last service
           </CardTitle>
-
-          <History className="size-4 text-muted-foreground" />
+          <div className="flex size-8 items-center justify-center rounded-full bg-sky-500/15 text-sky-600 dark:text-sky-400">
+            <History className="size-4" aria-hidden="true" />
+          </div>
         </CardHeader>
-
         <CardContent>
           {lastService ? (
             <>
               <p className="text-lg font-semibold">{lastService.title}</p>
-
               <p className="mt-1 text-sm text-muted-foreground">
                 {formatNumber(lastService.mileage)} km
               </p>
@@ -133,22 +126,19 @@ const ServiceOverview = () => {
         </CardContent>
       </Card>
 
-      {/* NEXT SERVICE */}
-
+      {/* Next service */}
       <Card>
         <CardHeader className="flex flex-row items-center justify-between space-y-0">
           <CardTitle className="text-sm font-medium text-muted-foreground">
             Next service
           </CardTitle>
-
-          <CalendarClock className="size-4 text-muted-foreground" />
+          <div className="flex size-8 items-center justify-center rounded-full bg-amber-500/15 text-amber-600 dark:text-amber-400">
+            <CalendarClock className="size-4" aria-hidden="true" />
+          </div>
         </CardHeader>
-
         <CardContent>
           {currentNextMaintenance ? (
             <div className="space-y-2">
-              {/* TITLE + NAVIGATION */}
-
               <div className="flex items-center gap-1">
                 {canNavigate && (
                   <Button
@@ -181,30 +171,36 @@ const ServiceOverview = () => {
                 )}
               </div>
 
-              {/* NEXT SERVICE MILEAGE */}
-
               <p className="text-sm text-muted-foreground">
-                {formatNumber(currentNextMaintenance.nextServiceMileage ?? 0)}{" "}
-                km
+                {currentNextMaintenance.nextServiceMileage !== undefined
+                  ? `${formatNumber(currentNextMaintenance.nextServiceMileage)} km`
+                  : currentNextMaintenance.nextServiceDate
+                    ? format(
+                        new Date(currentNextMaintenance.nextServiceDate),
+                        "d MMM yyyy",
+                      )
+                    : "—"}
               </p>
 
-              {/* REMAINING */}
-
-              {remainingKm !== undefined && (
+              {(remainingKm !== undefined || remainingDays !== undefined) && (
                 <p
                   className={
-                    remainingKm < 0
+                    isOverdue
                       ? "text-xs font-medium text-destructive"
                       : "text-xs text-muted-foreground"
                   }
                 >
-                  {remainingKm >= 0
-                    ? `${formatNumber(remainingKm)} km remaining`
-                    : `${formatNumber(Math.abs(remainingKm))} km overdue`}
+                  {remainingKm !== undefined
+                    ? remainingKm >= 0
+                      ? `${formatNumber(remainingKm)} km remaining`
+                      : `${formatNumber(Math.abs(remainingKm))} km overdue`
+                    : remainingDays !== undefined
+                      ? remainingDays >= 0
+                        ? `${remainingDays} days remaining`
+                        : `${Math.abs(remainingDays)} days overdue`
+                      : null}
                 </p>
               )}
-
-              {/* INDICATORS */}
 
               {canNavigate && (
                 <div className="flex items-center gap-1 pt-1">
@@ -230,65 +226,52 @@ const ServiceOverview = () => {
         </CardContent>
       </Card>
 
-      {/* CURRENT MILEAGE */}
-
+      {/* Current mileage */}
       <Card>
         <CardHeader className="flex flex-row items-center justify-between space-y-0">
           <CardTitle className="text-sm font-medium text-muted-foreground">
             Current mileage
           </CardTitle>
-
-          <Gauge className="size-4 text-muted-foreground" />
+          <div className="flex size-8 items-center justify-center rounded-full bg-red-500/15 text-red-600 dark:text-red-400">
+            <Gauge className="size-4" aria-hidden="true" />
+          </div>
         </CardHeader>
-
         <CardContent>
           <p className="text-2xl font-semibold">
             {formatNumber(currentMileage)}
           </p>
-
           <p className="mt-1 text-sm text-muted-foreground">km</p>
         </CardContent>
       </Card>
 
-      {/* SERVICES */}
-
+      {/* Services */}
       <Card>
         <CardHeader className="flex flex-row items-center justify-between space-y-0">
           <CardTitle className="text-sm font-medium text-muted-foreground">
             Services
           </CardTitle>
-
-          <History className="size-4 text-muted-foreground" />
+          <div className="flex size-8 items-center justify-center rounded-full bg-green-500/15 text-green-600 dark:text-green-400">
+            <Hash className="size-4" aria-hidden="true" />
+          </div>
         </CardHeader>
-
         <CardContent>
           <p className="text-2xl font-semibold">{serviceCount}</p>
-
           <p className="mt-1 text-sm text-muted-foreground">completed</p>
         </CardContent>
       </Card>
 
-      {/* TOTAL COST */}
-
+      {/* Total cost */}
       <Card>
         <CardHeader className="flex flex-row items-center justify-between space-y-0">
           <CardTitle className="text-sm font-medium text-muted-foreground">
             Total cost
           </CardTitle>
-
-          <Wallet className="size-4 text-muted-foreground" />
+          <div className="flex size-8 items-center justify-center rounded-full bg-violet-500/15 text-violet-600 dark:text-violet-400">
+            <Wallet className="size-4" aria-hidden="true" />
+          </div>
         </CardHeader>
-
         <CardContent>
           <p className="text-2xl font-semibold">{formatMoney(totalCost)}</p>
-
-          {remainingKm !== undefined && (
-            <p className="mt-1 text-sm text-muted-foreground">
-              {remainingKm >= 0
-                ? `${formatNumber(remainingKm)} km remaining`
-                : `${formatNumber(Math.abs(remainingKm))} km overdue`}
-            </p>
-          )}
         </CardContent>
       </Card>
     </div>

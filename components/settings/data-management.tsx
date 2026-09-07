@@ -1,13 +1,10 @@
 "use client";
 
 import { useRef, useState } from "react";
-
 import { Download, FileUp, RotateCcw, Trash2 } from "lucide-react";
 
 import { Button } from "@/components/ui/button";
-
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-
 import {
   AlertDialog,
   AlertDialogAction,
@@ -18,7 +15,6 @@ import {
   AlertDialogHeader,
   AlertDialogTitle,
 } from "@/components/ui/alert-dialog";
-
 import { STORAGE_KEYS } from "@/lib/storage/keys";
 
 const DATA_KEYS = [
@@ -33,9 +29,7 @@ const ALL_KEYS = [...DATA_KEYS] as const;
 
 const DataManagement = () => {
   const fileInputRef = useRef<HTMLInputElement>(null);
-
   const [dialog, setDialog] = useState<"clear" | "reset" | null>(null);
-
   const [importError, setImportError] = useState<string | null>(null);
 
   const exportData = () => {
@@ -43,7 +37,6 @@ const DataManagement = () => {
 
     ALL_KEYS.forEach((key) => {
       const value = localStorage.getItem(key);
-
       if (value !== null) {
         try {
           data[key] = JSON.parse(value);
@@ -65,35 +58,25 @@ const DataManagement = () => {
     });
 
     const url = URL.createObjectURL(blob);
-
     const link = document.createElement("a");
-
     link.href = url;
     link.download = `my-lamando-backup-${new Date()
       .toISOString()
       .slice(0, 10)}.json`;
 
     document.body.appendChild(link);
-
     link.click();
-
     link.remove();
-
     URL.revokeObjectURL(url);
   };
 
   const importData = async (event: React.ChangeEvent<HTMLInputElement>) => {
     const file = event.target.files?.[0];
-
-    if (!file) {
-      return;
-    }
+    if (!file) return;
 
     try {
       setImportError(null);
-
       const text = await file.text();
-
       const parsed = JSON.parse(text);
 
       if (
@@ -108,10 +91,7 @@ const DataManagement = () => {
       const importedData = parsed.data as Record<string, unknown>;
 
       ALL_KEYS.forEach((key) => {
-        if (!(key in importedData)) {
-          return;
-        }
-
+        if (!(key in importedData)) return;
         localStorage.setItem(key, JSON.stringify(importedData[key]));
       });
 
@@ -126,61 +106,53 @@ const DataManagement = () => {
   };
 
   const clearAllData = () => {
-    DATA_KEYS.forEach((key) => {
-      localStorage.removeItem(key);
-    });
-
+    DATA_KEYS.forEach((key) => localStorage.removeItem(key));
     setDialog(null);
-
     window.location.reload();
   };
 
   const resetApplication = () => {
-    ALL_KEYS.forEach((key) => {
-      localStorage.removeItem(key);
-    });
-
+    ALL_KEYS.forEach((key) => localStorage.removeItem(key));
     setDialog(null);
-
     window.location.reload();
   };
 
   return (
     <>
-      <Card>
-        <CardHeader>
-          <CardTitle>Data</CardTitle>
-
+      <Card className="border-border/60">
+        <CardHeader className="pb-3">
+          <CardTitle className="text-base font-semibold">Data</CardTitle>
           <p className="text-sm text-muted-foreground">
             Back up, restore or remove your application data.
           </p>
         </CardHeader>
 
         <CardContent className="space-y-3">
-          <div className="flex flex-col gap-4 rounded-lg border p-4 sm:flex-row sm:items-center sm:justify-between">
+          <div className="flex flex-col gap-4 rounded-xl border border-border/60 p-4 sm:flex-row sm:items-center sm:justify-between">
             <div className="space-y-1">
               <p className="font-medium">Export data</p>
-
               <p className="text-sm text-muted-foreground">
                 Save your My Lamando data as a JSON backup.
               </p>
             </div>
-
-            <Button type="button" variant="outline" onClick={exportData}>
-              <Download className="mr-2 size-4" />
+            <Button
+              type="button"
+              variant="outline"
+              className="gap-2 shrink-0"
+              onClick={exportData}
+            >
+              <Download className="size-4" aria-hidden="true" />
               Export
             </Button>
           </div>
 
-          <div className="flex flex-col gap-4 rounded-lg border p-4 sm:flex-row sm:items-center sm:justify-between">
+          <div className="flex flex-col gap-4 rounded-xl border border-border/60 p-4 sm:flex-row sm:items-center sm:justify-between">
             <div className="space-y-1">
               <p className="font-medium">Import data</p>
-
               <p className="text-sm text-muted-foreground">
                 Restore your data from a JSON backup.
               </p>
             </div>
-
             <div>
               <input
                 ref={fileInputRef}
@@ -189,58 +161,58 @@ const DataManagement = () => {
                 className="hidden"
                 onChange={importData}
               />
-
               <Button
                 type="button"
                 variant="outline"
+                className="gap-2 shrink-0"
                 onClick={() => fileInputRef.current?.click()}
               >
-                <FileUp className="mr-2 size-4" />
+                <FileUp className="size-4" aria-hidden="true" />
                 Import
               </Button>
             </div>
           </div>
 
-          <div className="flex flex-col gap-4 rounded-lg border border-destructive/30 p-4 sm:flex-row sm:items-center sm:justify-between">
+          <div className="flex flex-col gap-4 rounded-xl border border-destructive/25 bg-destructive/5 p-4 sm:flex-row sm:items-center sm:justify-between">
             <div className="space-y-1">
               <p className="font-medium">Clear all data</p>
-
               <p className="text-sm text-muted-foreground">
                 Delete fuel, expenses, service and gallery data.
               </p>
             </div>
-
             <Button
               type="button"
               variant="destructive"
+              className="gap-2 shrink-0"
               onClick={() => setDialog("clear")}
             >
-              <Trash2 className="mr-2 size-4" />
+              <Trash2 className="size-4" aria-hidden="true" />
               Clear data
             </Button>
           </div>
 
-          <div className="flex flex-col gap-4 rounded-lg border border-destructive/30 p-4 sm:flex-row sm:items-center sm:justify-between">
+          <div className="flex flex-col gap-4 rounded-xl border border-destructive/25 bg-destructive/5 p-4 sm:flex-row sm:items-center sm:justify-between">
             <div className="space-y-1">
               <p className="font-medium">Reset application</p>
-
               <p className="text-sm text-muted-foreground">
                 Remove all stored data and restore defaults.
               </p>
             </div>
-
             <Button
               type="button"
               variant="destructive"
+              className="gap-2 shrink-0"
               onClick={() => setDialog("reset")}
             >
-              <RotateCcw className="mr-2 size-4" />
+              <RotateCcw className="size-4" aria-hidden="true" />
               Reset app
             </Button>
           </div>
 
           {importError && (
-            <p className="text-sm text-destructive">{importError}</p>
+            <p className="text-sm text-destructive" role="alert">
+              {importError}
+            </p>
           )}
         </CardContent>
       </Card>
@@ -248,9 +220,7 @@ const DataManagement = () => {
       <AlertDialog
         open={dialog !== null}
         onOpenChange={(open) => {
-          if (!open) {
-            setDialog(null);
-          }
+          if (!open) setDialog(null);
         }}
       >
         <AlertDialogContent>
@@ -258,7 +228,6 @@ const DataManagement = () => {
             <AlertDialogTitle>
               {dialog === "clear" ? "Clear all data?" : "Reset application?"}
             </AlertDialogTitle>
-
             <AlertDialogDescription>
               {dialog === "clear"
                 ? "This will permanently delete your fuel records, expenses, service history and gallery photos. Your application settings will remain unchanged."
@@ -268,9 +237,9 @@ const DataManagement = () => {
 
           <AlertDialogFooter>
             <AlertDialogCancel>Cancel</AlertDialogCancel>
-
             <AlertDialogAction
               onClick={dialog === "clear" ? clearAllData : resetApplication}
+              className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
             >
               {dialog === "clear" ? "Clear all data" : "Reset application"}
             </AlertDialogAction>
