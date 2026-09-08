@@ -1,20 +1,23 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import { Pencil, Plus } from "lucide-react";
+import { CalendarIcon, Pencil, Plus } from "lucide-react";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useForm, useWatch } from "react-hook-form";
-
+import { format, isValid, parseISO } from "date-fns";
+import { ru } from "date-fns/locale";
 import { useService } from "@/contexts/service-context";
 import type { ServiceRecord } from "@/types/service";
+
 import {
   serviceSchema,
   type ServiceFormValues,
 } from "@/schemas/service-schema";
+
 import { MAINTENANCE_WORKS } from "@/lib/constants/maintenance";
 import { useCar } from "@/contexts/car-context";
-
 import { Button } from "@/components/ui/button";
+
 import {
   Dialog,
   DialogContent,
@@ -22,7 +25,15 @@ import {
   DialogTitle,
   DialogTrigger,
 } from "@/components/ui/dialog";
+
 import { Input } from "@/components/ui/input";
+import { Calendar } from "@/components/ui/calendar";
+import {
+  Popover,
+  PopoverContent,
+  PopoverTrigger,
+} from "@/components/ui/popover";
+
 import MultiSelect from "@/components/ui/multi-select";
 import { toast } from "sonner";
 
@@ -30,14 +41,28 @@ interface ServiceDialogProps {
   entry?: ServiceRecord;
 }
 
+const getDateValue = (value?: string): Date | undefined => {
+  if (!value) {
+    return undefined;
+  }
+
+  const date = parseISO(value);
+
+  return isValid(date) ? date : undefined;
+};
+
 const ServiceDialog = ({ entry }: ServiceDialogProps) => {
   const { addServiceEntry, updateServiceEntry } = useService();
+
   const { car } = useCar();
+
   const [open, setOpen] = useState(false);
+
   const isEditMode = Boolean(entry);
 
   const form = useForm<ServiceFormValues>({
     resolver: zodResolver(serviceSchema),
+
     defaultValues: {
       date: entry?.date
         ? entry.date.slice(0, 10)
@@ -55,6 +80,13 @@ const ServiceDialog = ({ entry }: ServiceDialogProps) => {
     control: form.control,
     name: "works",
   });
+
+  const date = useWatch({
+    control: form.control,
+    name: "date",
+  });
+
+  const selectedDate = getDateValue(date);
 
   useEffect(() => {
     if (!open) return;
@@ -75,7 +107,7 @@ const ServiceDialog = ({ entry }: ServiceDialogProps) => {
   const onSubmit = (values: ServiceFormValues) => {
     const serviceEntry: ServiceRecord = {
       id: entry?.id ?? crypto.randomUUID(),
-      date: new Date(values.date).toISOString(),
+      date: new Date(`${values.date}T00:00:00`).toISOString(),
       mileage: values.mileage,
       title: values.title,
       works: values.works,
@@ -124,7 +156,45 @@ const ServiceDialog = ({ entry }: ServiceDialogProps) => {
               <label htmlFor="service-date" className="text-sm font-medium">
                 Date
               </label>
-              <Input id="service-date" type="date" {...form.register("date")} />
+
+              <Popover>
+                <PopoverTrigger
+                  type="button"
+                  id="service-date"
+                  className="flex h-9 w-full min-w-0 items-center justify-start gap-2 rounded-md border border-input bg-transparent px-2.5 py-1 text-sm shadow-xs outline-none transition-[color,box-shadow] hover:bg-accent/50 focus-visible:border-ring focus-visible:ring-3 focus-visible:ring-ring/50 data-popup-open:border-ring data-popup-open:ring-3 data-popup-open:ring-ring/50 disabled:pointer-events-none disabled:cursor-not-allowed disabled:opacity-50 dark:bg-input/30"
+                >
+                  <CalendarIcon className="size-4 shrink-0 text-muted-foreground" />
+
+                  {selectedDate ? (
+                    <span className="truncate">
+                      {format(selectedDate, "dd.MM.yyyy", {
+                        locale: ru,
+                      })}
+                    </span>
+                  ) : (
+                    <span className="text-muted-foreground">Select date</span>
+                  )}
+                </PopoverTrigger>
+
+                <PopoverContent className="w-auto p-0" align="start">
+                  <Calendar
+                    mode="single"
+                    selected={selectedDate}
+                    onSelect={(selectedDate) => {
+                      form.setValue(
+                        "date",
+                        selectedDate ? format(selectedDate, "yyyy-MM-dd") : "",
+                        {
+                          shouldValidate: true,
+                          shouldDirty: true,
+                        },
+                      );
+                    }}
+                    locale={ru}
+                  />
+                </PopoverContent>
+              </Popover>
+
               {form.formState.errors.date && (
                 <p className="text-sm text-destructive" role="alert">
                   {form.formState.errors.date.message}
@@ -136,12 +206,16 @@ const ServiceDialog = ({ entry }: ServiceDialogProps) => {
               <label htmlFor="service-mileage" className="text-sm font-medium">
                 Mileage
               </label>
+
               <Input
                 id="service-mileage"
                 type="number"
                 min="0"
-                {...form.register("mileage", { valueAsNumber: true })}
+                {...form.register("mileage", {
+                  valueAsNumber: true,
+                })}
               />
+
               {form.formState.errors.mileage && (
                 <p className="text-sm text-destructive" role="alert">
                   {form.formState.errors.mileage.message}
@@ -154,11 +228,13 @@ const ServiceDialog = ({ entry }: ServiceDialogProps) => {
             <label htmlFor="service-title" className="text-sm font-medium">
               Service name
             </label>
+
             <Input
               id="service-title"
               placeholder="e.g. TO #1"
               {...form.register("title")}
             />
+
             {form.formState.errors.title && (
               <p className="text-sm text-destructive" role="alert">
                 {form.formState.errors.title.message}
@@ -168,6 +244,7 @@ const ServiceDialog = ({ entry }: ServiceDialogProps) => {
 
           <div className="space-y-2">
             <label className="text-sm font-medium">Completed works</label>
+
             <MultiSelect
               options={MAINTENANCE_WORKS}
               value={works ?? []}
@@ -179,11 +256,13 @@ const ServiceDialog = ({ entry }: ServiceDialogProps) => {
               }}
               placeholder="Select completed works..."
             />
+
             {form.formState.errors.works && (
               <p className="text-sm text-destructive" role="alert">
                 {form.formState.errors.works.message}
               </p>
             )}
+
             <p className="text-xs text-muted-foreground">
               Select all works completed during this service.
             </p>
@@ -194,14 +273,18 @@ const ServiceDialog = ({ entry }: ServiceDialogProps) => {
               <label htmlFor="service-cost" className="text-sm font-medium">
                 Cost
               </label>
+
               <Input
                 id="service-cost"
                 type="number"
                 min="0"
                 step="0.01"
                 placeholder="0"
-                {...form.register("cost", { valueAsNumber: true })}
+                {...form.register("cost", {
+                  valueAsNumber: true,
+                })}
               />
+
               {form.formState.errors.cost && (
                 <p className="text-sm text-destructive" role="alert">
                   {form.formState.errors.cost.message}
@@ -213,11 +296,13 @@ const ServiceDialog = ({ entry }: ServiceDialogProps) => {
               <label htmlFor="service-company" className="text-sm font-medium">
                 Service center
               </label>
+
               <Input
                 id="service-company"
                 placeholder="e.g. Volkswagen Service"
                 {...form.register("serviceName")}
               />
+
               {form.formState.errors.serviceName && (
                 <p className="text-sm text-destructive" role="alert">
                   {form.formState.errors.serviceName.message}
@@ -230,11 +315,13 @@ const ServiceDialog = ({ entry }: ServiceDialogProps) => {
             <label htmlFor="service-comment" className="text-sm font-medium">
               Comment
             </label>
+
             <Input
               id="service-comment"
               placeholder="Optional"
               {...form.register("comment")}
             />
+
             {form.formState.errors.comment && (
               <p className="text-sm text-destructive" role="alert">
                 {form.formState.errors.comment.message}
@@ -250,6 +337,7 @@ const ServiceDialog = ({ entry }: ServiceDialogProps) => {
             >
               Cancel
             </Button>
+
             <Button type="submit">
               {isEditMode ? "Save changes" : "Add service"}
             </Button>

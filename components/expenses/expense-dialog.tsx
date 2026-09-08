@@ -1,18 +1,21 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import { Plus, Pencil } from "lucide-react";
+import { CalendarIcon, Pencil, Plus } from "lucide-react";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useForm, useWatch } from "react-hook-form";
-
+import { format, isValid, parseISO } from "date-fns";
+import { ru } from "date-fns/locale";
 import { useExpense } from "@/contexts/expense-context";
 import type { Expense } from "@/types/expense";
+
 import {
   expenseSchema,
   type ExpenseFormValues,
 } from "@/schemas/expense-schema";
 
 import { Button } from "@/components/ui/button";
+
 import {
   Dialog,
   DialogContent,
@@ -20,7 +23,16 @@ import {
   DialogTitle,
   DialogTrigger,
 } from "@/components/ui/dialog";
+
 import { Input } from "@/components/ui/input";
+import { Calendar } from "@/components/ui/calendar";
+
+import {
+  Popover,
+  PopoverContent,
+  PopoverTrigger,
+} from "@/components/ui/popover";
+
 import {
   Select,
   SelectContent,
@@ -28,15 +40,28 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
+
 import { toast } from "sonner";
 
 interface ExpenseDialogProps {
   entry?: Expense;
 }
 
+const getDateValue = (value?: string): Date | undefined => {
+  if (!value) {
+    return undefined;
+  }
+
+  const date = parseISO(value);
+
+  return isValid(date) ? date : undefined;
+};
+
 const ExpenseDialog = ({ entry }: ExpenseDialogProps) => {
   const { addExpenseEntry, updateExpenseEntry } = useExpense();
+
   const [open, setOpen] = useState(false);
+
   const isEditMode = Boolean(entry);
 
   const form = useForm<ExpenseFormValues>({
@@ -57,6 +82,13 @@ const ExpenseDialog = ({ entry }: ExpenseDialogProps) => {
     control: form.control,
     name: "category",
   });
+
+  const date = useWatch({
+    control: form.control,
+    name: "date",
+  });
+
+  const selectedDate = getDateValue(date);
 
   useEffect(() => {
     if (!open) return;
@@ -91,7 +123,9 @@ const ExpenseDialog = ({ entry }: ExpenseDialogProps) => {
     }
 
     toast.success(`Expense entry ${entry ? "updated" : "added"}`, {
-      description: `${expenseEntry.title} · ${expenseEntry.amount.toFixed(2)} ₽`,
+      description: `${expenseEntry.title} · ${expenseEntry.amount.toFixed(
+        2,
+      )} ₽`,
     });
 
     setOpen(false);
@@ -123,7 +157,45 @@ const ExpenseDialog = ({ entry }: ExpenseDialogProps) => {
             <label htmlFor="expense-date" className="text-sm font-medium">
               Date
             </label>
-            <Input id="expense-date" type="date" {...form.register("date")} />
+
+            <Popover>
+              <PopoverTrigger
+                type="button"
+                id="expense-date"
+                className="flex h-9 w-full min-w-0 items-center justify-start gap-2 rounded-md border border-input bg-transparent px-2.5 py-1 text-sm shadow-xs outline-none transition-[color,box-shadow] hover:bg-accent/50 focus-visible:border-ring focus-visible:ring-3 focus-visible:ring-ring/50 data-popup-open:border-ring data-popup-open:ring-3 data-popup-open:ring-ring/50 disabled:pointer-events-none disabled:cursor-not-allowed disabled:opacity-50 dark:bg-input/30"
+              >
+                <CalendarIcon className="size-4 shrink-0 text-muted-foreground" />
+
+                {selectedDate ? (
+                  <span className="truncate">
+                    {format(selectedDate, "dd.MM.yyyy", {
+                      locale: ru,
+                    })}
+                  </span>
+                ) : (
+                  <span className="text-muted-foreground">Select date</span>
+                )}
+              </PopoverTrigger>
+
+              <PopoverContent className="w-auto p-0" align="start">
+                <Calendar
+                  mode="single"
+                  selected={selectedDate}
+                  onSelect={(selectedDate) => {
+                    form.setValue(
+                      "date",
+                      selectedDate ? format(selectedDate, "yyyy-MM-dd") : "",
+                      {
+                        shouldValidate: true,
+                        shouldDirty: true,
+                      },
+                    );
+                  }}
+                  locale={ru}
+                />
+              </PopoverContent>
+            </Popover>
+
             {form.formState.errors.date && (
               <p className="text-sm text-destructive" role="alert">
                 {form.formState.errors.date.message}
@@ -133,16 +205,21 @@ const ExpenseDialog = ({ entry }: ExpenseDialogProps) => {
 
           <div className="space-y-2">
             <label className="text-sm font-medium">Category</label>
+
             <Select
               value={category}
               onValueChange={(value) => {
                 if (value === null) return;
-                form.setValue("category", value, { shouldValidate: true });
+
+                form.setValue("category", value, {
+                  shouldValidate: true,
+                });
               }}
             >
               <SelectTrigger>
                 <SelectValue placeholder="Select category" />
               </SelectTrigger>
+
               <SelectContent>
                 <SelectItem value="Maintenance">Maintenance</SelectItem>
                 <SelectItem value="Fuel">Fuel</SelectItem>
@@ -153,6 +230,7 @@ const ExpenseDialog = ({ entry }: ExpenseDialogProps) => {
                 <SelectItem value="Other">Other</SelectItem>
               </SelectContent>
             </Select>
+
             {form.formState.errors.category && (
               <p className="text-sm text-destructive" role="alert">
                 {form.formState.errors.category.message}
@@ -164,11 +242,13 @@ const ExpenseDialog = ({ entry }: ExpenseDialogProps) => {
             <label htmlFor="expense-title" className="text-sm font-medium">
               Title
             </label>
+
             <Input
               id="expense-title"
               placeholder="Oil change"
               {...form.register("title")}
             />
+
             {form.formState.errors.title && (
               <p className="text-sm text-destructive" role="alert">
                 {form.formState.errors.title.message}
@@ -181,13 +261,17 @@ const ExpenseDialog = ({ entry }: ExpenseDialogProps) => {
               <label htmlFor="expense-amount" className="text-sm font-medium">
                 Amount
               </label>
+
               <Input
                 id="expense-amount"
                 type="number"
                 step="0.01"
                 min="0"
-                {...form.register("amount", { valueAsNumber: true })}
+                {...form.register("amount", {
+                  valueAsNumber: true,
+                })}
               />
+
               {form.formState.errors.amount && (
                 <p className="text-sm text-destructive" role="alert">
                   {form.formState.errors.amount.message}
@@ -199,12 +283,16 @@ const ExpenseDialog = ({ entry }: ExpenseDialogProps) => {
               <label htmlFor="expense-mileage" className="text-sm font-medium">
                 Mileage
               </label>
+
               <Input
                 id="expense-mileage"
                 type="number"
                 min="0"
-                {...form.register("mileage", { valueAsNumber: true })}
+                {...form.register("mileage", {
+                  valueAsNumber: true,
+                })}
               />
+
               {form.formState.errors.mileage && (
                 <p className="text-sm text-destructive" role="alert">
                   {form.formState.errors.mileage.message}
@@ -217,11 +305,13 @@ const ExpenseDialog = ({ entry }: ExpenseDialogProps) => {
             <label htmlFor="expense-note" className="text-sm font-medium">
               Note
             </label>
+
             <Input
               id="expense-note"
               placeholder="Optional"
               {...form.register("note")}
             />
+
             {form.formState.errors.note && (
               <p className="text-sm text-destructive" role="alert">
                 {form.formState.errors.note.message}
@@ -237,6 +327,7 @@ const ExpenseDialog = ({ entry }: ExpenseDialogProps) => {
             >
               Cancel
             </Button>
+
             <Button type="submit">
               {isEditMode ? "Save changes" : "Add expense"}
             </Button>
