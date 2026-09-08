@@ -1,7 +1,12 @@
 self.__BUILD_MANIFEST = {
   "__rewrites": {
     "afterFiles": [],
-    "beforeFiles": [],
+    "beforeFiles": [
+      {
+        "source": "/my-lamando//_next/:path+",
+        "destination": "/my-lamando/_next/:path+"
+      }
+    ],
     "fallback": []
   },
   "sortedPages": [
