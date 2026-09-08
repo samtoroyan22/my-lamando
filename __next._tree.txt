@@ -1,2 +1,2 @@
 :HL["/my-lamando/_next/static/css/89b8af1fb3fee3bc.css","style"]
-0:{"tree":{"name":"","param":null,"prefetchHints":4176,"slots":{"children":{"name":"__PAGE__","param":null,"prefetchHints":4256,"slots":null}}},"staleTime":300,"buildId":"9wBbuerCqM92MCigoLR6e"}
+0:{"tree":{"name":"","param":null,"prefetchHints":4176,"slots":{"children":{"name":"__PAGE__","param":null,"prefetchHints":4256,"slots":null}}},"staleTime":300,"buildId":"6BYbCIwdMd6vEkvAiJH5-"}
