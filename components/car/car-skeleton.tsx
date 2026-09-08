@@ -5,15 +5,12 @@ const SkeletonBlock = ({ className }: { className?: string }) => (
 );
 
 const InfoItemSkeleton = () => (
-  <div className="rounded-xl border bg-muted/30 p-4">
-    {/* icon + label в одной строке — как в реальном InfoItem */}
+  <div className="rounded-xl border border-border/60 bg-muted/30 p-4">
     <div className="flex items-center gap-2">
-      <SkeletonBlock className="size-4 shrink-0" />
-      <SkeletonBlock className="h-4 w-16" />
+      <SkeletonBlock className="size-8 shrink-0 rounded-full" />
+      <SkeletonBlock className="h-4 w-20" />
     </div>
-
-    {/* value */}
-    <SkeletonBlock className="mt-2 h-5 w-24" />
+    <SkeletonBlock className="mt-2 h-5 w-28" />
   </div>
 );
 
@@ -21,48 +18,33 @@ const CarSkeleton = () => {
   return (
     <div className="space-y-6">
       {/* Hero */}
-      <Card className="overflow-hidden">
-        <CardContent className="p-0">
-          <div className="relative">
-            <div className="relative flex flex-col gap-6 p-6 sm:p-8">
-              <div className="flex flex-col gap-4 sm:flex-row sm:items-start sm:justify-between">
-                <div className="space-y-3">
-                  <div className="flex items-center gap-2">
-                    <SkeletonBlock className="size-5 rounded-full" />
-                    <SkeletonBlock className="h-4 w-24" />
-                  </div>
+      <Card className="overflow-hidden border-border/60">
+        <CardContent>
+          <div className="flex flex-col gap-5 sm:flex-row sm:items-start sm:justify-between">
+            <div className="space-y-3">
+              <SkeletonBlock className="h-9 w-56 sm:h-10 sm:w-72" />
 
-                  <SkeletonBlock className="h-9 w-64 sm:h-10 sm:w-80" />
-
-                  <div className="flex flex-wrap gap-2">
-                    <SkeletonBlock className="h-6 w-14 rounded-full" />
-                    <SkeletonBlock className="h-6 w-20 rounded-full" />
-                    <SkeletonBlock className="h-6 w-24 rounded-full" />
-                  </div>
-                </div>
-
-                <div className="space-y-2 sm:text-right">
-                  <SkeletonBlock className="h-4 w-28 ml-auto" />
-                  <SkeletonBlock className="h-9 w-36 ml-auto" />
-                </div>
+              <div className="flex flex-wrap gap-2">
+                <SkeletonBlock className="h-6 w-14 rounded-full" />
+                <SkeletonBlock className="h-6 w-20 rounded-full" />
+                <SkeletonBlock className="h-6 w-24 rounded-full" />
               </div>
+            </div>
 
-              <div className="grid gap-4 sm:grid-cols-3">
-                <InfoItemSkeleton />
-                <InfoItemSkeleton />
-                <InfoItemSkeleton />
-              </div>
+            <div className="space-y-2 sm:text-right">
+              <SkeletonBlock className="ml-auto h-4 w-28" />
+              <SkeletonBlock className="ml-auto h-9 w-36 sm:h-10" />
             </div>
           </div>
         </CardContent>
       </Card>
 
-      {/* General information */}
-      <Card>
+      {/* Technical specifications */}
+      <Card className="border-border/60">
         <CardHeader className="pb-4">
           <div className="flex items-center gap-2">
-            <SkeletonBlock className="size-5 rounded-full" />
-            <SkeletonBlock className="h-6 w-48" />
+            <SkeletonBlock className="size-4 rounded-full" />
+            <SkeletonBlock className="h-5 w-48 sm:h-6 sm:w-52" />
           </div>
         </CardHeader>
 
@@ -75,18 +57,18 @@ const CarSkeleton = () => {
         </CardContent>
       </Card>
 
-      {/* Technical information */}
-      <Card>
+      {/* General information */}
+      <Card className="border-border/60">
         <CardHeader className="pb-4">
           <div className="flex items-center gap-2">
-            <SkeletonBlock className="size-5 rounded-full" />
-            <SkeletonBlock className="h-6 w-52" />
+            <SkeletonBlock className="size-4 rounded-full" />
+            <SkeletonBlock className="h-5 w-44 sm:h-6 sm:w-48" />
           </div>
         </CardHeader>
 
         <CardContent>
           <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
-            {Array.from({ length: 6 }).map((_, i) => (
+            {Array.from({ length: 3 }).map((_, i) => (
               <InfoItemSkeleton key={i} />
             ))}
           </div>
